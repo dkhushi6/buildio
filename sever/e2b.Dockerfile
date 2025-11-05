@@ -1,25 +1,18 @@
-FROM e2bdev/code-interpreter:latest 
 
-# Set working directory
-WORKDIR /home/user
 
-# Install Vite (React template) and TailwindCSS
-RUN yes "no" | npm create vite@latest . -- --template react && \
-    npm install
-RUN npm install -D tailwindcss postcss autoprefixer
-RUN npx tailwindcss init -p
-RUN npm install lucide-react 
-
-#add vite config file
 # Use the E2B base or Node image
 FROM e2bdev/code-interpreter:latest
 # or use Node
 # FROM node:20-alpine
 
-WORKDIR /app
+WORKDIR /home/user
+
 
 # Initialize new React + Vite project (non-interactive)
-RUN yes "no" | npm create vite@latest . -- --template react
+RUN yes "no" | npm create vite@latest . -- --template react-ts && \
+    npm install
+
+RUN npm install lucide-react 
 
 # Install TailwindCSS and dependencies
 RUN npm install -D tailwindcss@3 postcss autoprefixer
@@ -37,12 +30,14 @@ export default defineConfig({\n\
     host: "0.0.0.0",\n\
     port: 5173,\n\
     strictPort: true,\n\
+    allowedHosts: true,\n\
+
   },\n\
   preview: {\n\
     host: "0.0.0.0",\n\
     port: 5173,\n\
   },\n\
-});' > vite.config.js
+});' > vite.config.ts
 
 # tailwind.config.js
 RUN echo '/** @type {import("tailwindcss").Config} */\n\

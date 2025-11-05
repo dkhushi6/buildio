@@ -13,22 +13,22 @@ type fileType = {
 import Sandbox from "@e2b/code-interpreter";
 import { projectFiles } from "../../lib/projectFiles";
 const router = Router();
-const createBaseApp = async (sandbox) => {
-  //add base react app
-  for (const file of projectFiles as fileType[]) {
-    console.log("file", file);
-    // const fullPath = path.resolve(file.path || "");
-    // console.log("fullpath", fullPath);
-    // const dir = path.dirname(fullPath);
-    const filePath = file.path;
-    const dir = path.dirname(filePath);
-    console.log("DIR INSIDE BASEAPP", dir);
-    await sandbox.files.makeDir(dir);
-    console.log("DIR MADE IN SANDBOX");
-    await sandbox.files.write(filePath, file.content);
-    console.log("FILE ADDED MADE IN SANDBOX");
-  }
-};
+// const createBaseApp = async (sandbox) => {
+//   //add base react app
+//   for (const file of projectFiles as fileType[]) {
+//     console.log("file", file);
+//     // const fullPath = path.resolve(file.path || "");
+//     // console.log("fullpath", fullPath);
+//     // const dir = path.dirname(fullPath);
+//     const filePath = file.path;
+//     const dir = path.dirname(filePath);
+//     console.log("DIR INSIDE BASEAPP", dir);
+//     await sandbox.files.makeDir(dir);
+//     console.log("DIR MADE IN SANDBOX");
+//     await sandbox.files.write(filePath, file.content);
+//     console.log("FILE ADDED MADE IN SANDBOX");
+//   }
+// };
 const AppendBaseApp = async (sandbox, step) => {
   const filePath = step.path;
   const dir = path.dirname(filePath);
@@ -61,13 +61,16 @@ router.post("/getcode", async (req, res) => {
   if (!prompt) {
     return res.json({ message: "no msg recieved" });
   }
-  const sandbox = await Sandbox.create(); // box with id created
+
+  const sandbox = await Sandbox.create("9ltypddtnj1uhv1iv3u1");
   console.log("sandbox id is", sandbox.sandboxId);
   const { sandboxId } = sandbox;
-  //add base react app
-  //create a sand box with base react app
-  await createBaseApp(sandbox);
+  const host = sandbox.getHost(5173);
+  const url = host;
+
   console.log("base app made");
+  console.log("🔗 Base App is available at:", host);
+
   const { object } = await generateObject({
     model: google("gemini-2.5-pro"),
     messages: [{ role: "user", content: prompt }],
@@ -75,42 +78,19 @@ router.post("/getcode", async (req, res) => {
     system: systemPrompt,
     maxRetries: 0,
   });
-  object.steps.push(
-    {
-      action: "runCommand",
-      command: "npm install",
-    },
-    { action: "runCommand", command: "npm run dev" }
-  );
+  object.steps.push({ action: "runCommand", command: "npm run dev" });
 
   console.log("generated code", object);
   //looping through all steps
-  let url;
   for (const step of object.steps) {
     if (step.action === "createFile" || step.action === "replaceFile") {
       await AppendBaseApp(sandbox, step);
     } else if (step.action === "runCommand") {
-      if (step.command.includes("npm run dev")) {
-        sandbox.commands.run(step.command, {
-          background: true,
-
-          timeoutMs: 0, // disable timeout
-          onStdout: (data) => {
-            console.log(data);
-          },
-          onStderr: (data) => {
-            console.log(data);
-          },
-        });
-        const host = sandbox.getHost(5173); // not 3000
-        console.log("🔗 App is available at:", host);
-
-        url = host;
-      } else {
-        await sandbox.commands.run(step.command);
-      }
+      await sandbox.commands.run(step.command);
     }
   }
+  console.log("🔗 App is available at:", host);
+
   return res.json({
     message: "generate code successfully",
     url,
