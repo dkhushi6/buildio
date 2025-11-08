@@ -17,7 +17,7 @@ router.post("/tree", async (req, res) => {
     const files = await sandbox.files.list(".");
     console.log("before send to getfoldertree");
     const tree = await getFolderTree(sandbox, ".");
-    console.log("Tree generated:", tree);
+    // console.log("Tree generated:", tree);
 
     return res.json({ message: "got files", tree });
   } catch (err) {

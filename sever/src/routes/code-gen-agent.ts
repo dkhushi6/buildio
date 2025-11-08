@@ -1,60 +1,31 @@
 import { google } from "@ai-sdk/google";
-import { generateObject, tool } from "ai";
+import { generateObject, streamText, tool } from "ai";
 import { Router } from "express";
 import { systemPrompt } from "../../lib/systemPrompt";
+import { createFile } from "../../lib/tools";
+import { runCommand } from "../../lib/tools";
+
+import { replaceFile } from "../../lib/tools";
+
 import z from "zod";
 import path from "path";
-type fileType = {
-  path: string;
-  content: string;
-  lastModified: number;
-  isBinary: boolean;
-};
+
 import Sandbox from "@e2b/code-interpreter";
-import { projectFiles } from "../../lib/projectFiles";
+import { required } from "zod/mini";
 const router = Router();
-// const createBaseApp = async (sandbox) => {
-//   //add base react app
-//   for (const file of projectFiles as fileType[]) {
-//     console.log("file", file);
-//     // const fullPath = path.resolve(file.path || "");
-//     // console.log("fullpath", fullPath);
-//     // const dir = path.dirname(fullPath);
-//     const filePath = file.path;
-//     const dir = path.dirname(filePath);
-//     console.log("DIR INSIDE BASEAPP", dir);
-//     await sandbox.files.makeDir(dir);
-//     console.log("DIR MADE IN SANDBOX");
-//     await sandbox.files.write(filePath, file.content);
-//     console.log("FILE ADDED MADE IN SANDBOX");
-//   }
-// };
-const AppendBaseApp = async (sandbox, step) => {
-  const filePath = step.path;
+
+export const AppendBaseApp = async (
+  sandbox,
+  { path: stepPath, content: stepContent }
+) => {
+  const filePath = stepPath;
   const dir = path.dirname(filePath);
   console.log("DIR INSIDE AIApp", dir);
   await sandbox.files.makeDir(dir);
   console.log("DIR MADE IN SANDBOX AIApp");
-  await sandbox.files.write(filePath, step.content);
+  await sandbox.files.write(filePath, stepContent);
   console.log("FILE ADDED MADE IN SANDBOX AIApp");
 };
-const stepSchema = z.discriminatedUnion("action", [
-  z.object({
-    action: z.literal("createFile"),
-    content: z.string(),
-    path: z.string(),
-  }),
-  z.object({
-    action: z.literal("runCommand"),
-    command: z.string(),
-  }),
-  z.object({
-    action: z.literal("replaceFile"),
-    content: z.string(),
-    path: z.string(),
-  }),
-]);
-const workflowSchema = z.object({ steps: z.array(stepSchema).nonempty() });
 
 router.post("/getcode", async (req, res) => {
   const { prompt } = req.body;
@@ -71,24 +42,37 @@ router.post("/getcode", async (req, res) => {
   console.log("base app made");
   console.log("🔗 Base App is available at:", host);
 
-  const { object } = await generateObject({
+  const { textStream } = streamText({
     model: google("gemini-2.5-pro"),
-    messages: [{ role: "user", content: prompt }],
-    schema: workflowSchema,
-    system: systemPrompt,
-    maxRetries: 0,
-  });
-  object.steps.push({ action: "runCommand", command: "npm run dev" });
+    toolChoice: "required",
+    tools: {
+      createFile: createFile(sandbox),
+      replaceFile: replaceFile(sandbox),
+      runCommand: runCommand(sandbox),
+    },
 
-  console.log("generated code", object);
-  //looping through all steps
-  for (const step of object.steps) {
-    if (step.action === "createFile" || step.action === "replaceFile") {
-      await AppendBaseApp(sandbox, step);
-    } else if (step.action === "runCommand") {
-      await sandbox.commands.run(step.command);
-    }
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: prompt },
+    ],
+  });
+
+  for await (const textPart of textStream) {
+    console.log(textPart);
   }
+
+  // object.steps.push({ action: "runCommand", command: "npm install" });
+
+  // console.log("generated code", object);
+  // //looping through all steps
+  // for (const step of object.steps) {
+  //   if (step.action === "createFile" || step.action === "replaceFile") {
+  //     await AppendBaseApp(sandbox, step);
+  //   }
+  //   if (step.action === "runCommand") {
+  //     await sandbox.commands.run(step.command);
+  //   }
+  // }
   console.log("🔗 App is available at:", host);
 
   return res.json({

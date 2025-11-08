@@ -14,7 +14,6 @@ export async function getFolderTree(
 ): Promise<FileNode> {
   console.log("in folder tree");
   const items = await sandbox.files.list(dirPath);
-  console.log(items);
   const children: FileNode[] = [];
 
   for (const item of items) {
