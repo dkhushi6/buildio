@@ -9,6 +9,9 @@ import RightSide from "./right-side";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import RightSideInitial from "./right-side-initial";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:8080");
 
 export function ResizableBar() {
   const [projectMade, setProjectMade] = useState(false);
@@ -20,6 +23,7 @@ export function ResizableBar() {
     <ResizablePanelGroup direction="horizontal" className="  ">
       <ResizablePanel defaultSize={33} minSize={20} maxSize={50}>
         <LeftSide
+          socket={socket}
           setProjectMade={setProjectMade}
           setUrl={setUrl}
           setSandboxId={setSandboxId}

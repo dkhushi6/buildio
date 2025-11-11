@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
+import { io } from "socket.io-client";
 
 type LeftSideProps = {
   setProjectMade: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,20 +26,46 @@ const LeftSide = ({ setProjectMade, setUrl, setSandboxId }: LeftSideProps) => {
     setLoading(true);
     try {
       console.log("PROJECT CREATION REQ SEND");
-
-      const res = await axios.post("http://localhost:8080/api/getcode", {
-        prompt,
+      const socket = io("http://localhost:8080");
+      socket.emit("getcode", prompt);
+      socket.on("sandboxId", (id) => {
+        console.log("🧩 Sandbox ID:", id);
+        setSandboxId(id);
       });
-      console.log("res recieved");
-      if (res.data.status === "ok") {
-        setProjectMade(true);
-      }
-      setSandboxId(res.data.sandboxId);
 
-      setTimeout(() => {
-        const completeUrl = `https://${res.data.url}`;
+      socket.on("url", (url) => {
+        console.log("🌐 Sandbox URL:", url);
+        const completeUrl = `https://${url}`;
         setUrl(completeUrl);
-      }, 3000);
+      });
+
+      socket.on("createFile", (path) => {
+        console.log("📄 File created:", path);
+      });
+
+      socket.on("replaceFile", (path) => {
+        console.log("♻️ File replaced:", path);
+      });
+
+      socket.on("runCmd", (cmd) => {
+        console.log("⚙️ Command executed:", cmd);
+      });
+      socket.on("done", () => {
+        console.log("✅ All steps completed:");
+      });
+      // const res = await axios.post("http://localhost:8080/api/getcode", {
+      //   prompt,
+      // });
+      // console.log("res recieved");
+      // if (res.data.status === "ok") {
+      //   setProjectMade(true);
+      // }
+      // setSandboxId(res.data.sandboxId);
+
+      // setTimeout(() => {
+      //   const completeUrl = `https://${res.data.url}`;
+      //   setUrl(completeUrl);
+      // }, 3000);
 
       // setResponse(res.data.result);
     } catch (err: any) {

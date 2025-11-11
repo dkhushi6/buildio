@@ -3,7 +3,7 @@ import { tool } from "ai";
 import Sandbox from "@e2b/code-interpreter";
 import { AppendBaseApp } from "../src/routes/code-gen-agent";
 
-export const createFile = (sandbox: Sandbox) => {
+export const createFile = (sandbox: Sandbox, socket) => {
   return tool({
     description: "Replace a file at a certain directory",
     inputSchema: z.object({
@@ -17,12 +17,14 @@ export const createFile = (sandbox: Sandbox) => {
 
       await AppendBaseApp(sandbox, { path, content });
       console.log("path is create file", path);
+      socket.emit("createFile", path);
+
       return `File replaced`;
     },
   });
 };
 
-export const replaceFile = (sandbox: Sandbox) => {
+export const replaceFile = (sandbox: Sandbox, socket) => {
   return tool({
     description: "Replace a file at a certain directory",
     inputSchema: z.object({
@@ -37,12 +39,13 @@ export const replaceFile = (sandbox: Sandbox) => {
       console.log("content is replace file", content);
 
       await AppendBaseApp(sandbox, { path, content });
+      socket.emit("replaceFile", path);
       return `File replaced`;
     },
   });
 };
 
-export const runCommand = (sandbox: Sandbox) => {
+export const runCommand = (sandbox: Sandbox, socket) => {
   return tool({
     description: "Run a shell command inside sandbox",
     inputSchema: z.object({
@@ -50,6 +53,7 @@ export const runCommand = (sandbox: Sandbox) => {
     }),
     async execute({ command }: { command: string }) {
       await sandbox.commands.run(command);
+      socket.emit("runCmd", command);
       return `🛠️ Ran command: ${command}`;
     },
   });

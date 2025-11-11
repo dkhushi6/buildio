@@ -11,7 +11,6 @@ import z from "zod";
 import path from "path";
 
 import Sandbox from "@e2b/code-interpreter";
-import { required } from "zod/mini";
 const router = Router();
 
 export const AppendBaseApp = async (
@@ -43,13 +42,13 @@ router.post("/getcode", async (req, res) => {
   console.log("🔗 Base App is available at:", host);
 
   const { textStream } = streamText({
-    model: google("gemini-2.5-pro"),
+    model: google("gemini-2.5-flash"),
     toolChoice: "required",
-    tools: {
-      createFile: createFile(sandbox),
-      replaceFile: replaceFile(sandbox),
-      runCommand: runCommand(sandbox),
-    },
+    // tools: {
+    //   createFile: createFile(sandbox),
+    //   replaceFile: replaceFile(sandbox),
+    //   runCommand: runCommand(sandbox),
+    // },
 
     messages: [
       { role: "system", content: systemPrompt },
@@ -61,18 +60,6 @@ router.post("/getcode", async (req, res) => {
     console.log(textPart);
   }
 
-  // object.steps.push({ action: "runCommand", command: "npm install" });
-
-  // console.log("generated code", object);
-  // //looping through all steps
-  // for (const step of object.steps) {
-  //   if (step.action === "createFile" || step.action === "replaceFile") {
-  //     await AppendBaseApp(sandbox, step);
-  //   }
-  //   if (step.action === "runCommand") {
-  //     await sandbox.commands.run(step.command);
-  //   }
-  // }
   console.log("🔗 App is available at:", host);
 
   return res.json({
