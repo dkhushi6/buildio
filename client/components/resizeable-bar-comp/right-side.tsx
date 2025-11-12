@@ -18,7 +18,7 @@ type RightSideProps = {
 const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
   const [tree, setTree] = useState<FileNode>();
   const [code, setCode] = useState("");
-  const [viewMode, setViewMode] = useState<"code" | "preview">("code");
+  const [viewMode, setViewMode] = useState<"code" | "preview">("preview");
 
   useEffect(() => {
     console.log("projectmade", projectMade);
@@ -52,15 +52,15 @@ const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
     }
   };
 
-  if (!tree && sandboxId) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <LoaderCircle className="animate-spin w-10 h-10 text-muted-foreground" />
-      </div>
-    );
-  }
+  // if ( sandboxId) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       <LoaderCircle className="animate-spin w-10 h-10 text-muted-foreground" />
+  //     </div>
+  //   );
+  // }
 
-  if (!tree) return null;
+  // if (!tree) return null;
   return (
     <div className="h-screen ">
       <div className="flex justify-start gap-3 p-3 border-b border-[#41413F] sticky top-0 z-10 shadow-sm">
@@ -91,14 +91,20 @@ const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
         {/* Main view area */}
         <div className="flex-1 overflow-auto">
           {viewMode === "code" ? (
-            <div className="flex">
-              <div className="w-[30vh] bg-[#1C1C1C] overflow-auto  ">
-                <FileTree treeData={tree} onFileClick={onFileClick} />
+            tree ? (
+              <div className="flex">
+                <div className="w-[30vh] bg-[#1C1C1C] overflow-auto  ">
+                  <FileTree treeData={tree} onFileClick={onFileClick} />
+                </div>
+                <div className="w-[60vh] pt-2">
+                  <CodeEditor code={code} language="javascript" />
+                </div>{" "}
               </div>
-              <div className="w-[60vh] pt-2">
-                <CodeEditor code={code} language="javascript" />
-              </div>{" "}
-            </div>
+            ) : (
+              <div className="flex items-center justify-center h-screen">
+                <LoaderCircle className="animate-spin w-10 h-10 text-muted-foreground" />
+              </div>
+            )
           ) : url ? (
             <iframe
               src={url}

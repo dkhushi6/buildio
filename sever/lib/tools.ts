@@ -47,14 +47,25 @@ export const replaceFile = (sandbox: Sandbox, socket) => {
 
 export const runCommand = (sandbox: Sandbox, socket) => {
   return tool({
-    description: "Run a shell command inside sandbox",
+    description: "Run a command inside sandbox",
     inputSchema: z.object({
       command: z.string(),
     }),
     async execute({ command }: { command: string }) {
-      await sandbox.commands.run(command);
-      socket.emit("runCmd", command);
-      return `🛠️ Ran command: ${command}`;
+      try {
+        console.log("⚙️ Running command:", command);
+
+        await sandbox.commands.run(command);
+        socket.emit("runCmd", command);
+        return `🛠️ Ran command: ${command}`;
+      } catch (err) {
+        if (command.includes("npm install")) {
+          await sandbox.commands.run("npm install --legacy-peer-deps");
+          socket.emit("runCmd", "npm install --legacy-peer-deps (fallback)");
+        } else {
+          socket.emit("runCmdError", err.result?.stderr || err.message);
+        }
+      }
     },
   });
 };

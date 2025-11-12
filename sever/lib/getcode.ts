@@ -1,6 +1,6 @@
 import { google } from "@ai-sdk/google";
 import Sandbox from "@e2b/code-interpreter";
-import { streamText } from "ai";
+import { stepCountIs, streamText } from "ai";
 import { systemPrompt } from "./systemPrompt";
 import { createFile } from "./tools";
 import { runCommand } from "./tools";

@@ -51,6 +51,7 @@ const LeftSide = ({ setProjectMade, setUrl, setSandboxId }: LeftSideProps) => {
         console.log("⚙️ Command executed:", cmd);
       });
       socket.on("done", () => {
+        setProjectMade(true);
         console.log("✅ All steps completed:");
       });
       // const res = await axios.post("http://localhost:8080/api/getcode", {
