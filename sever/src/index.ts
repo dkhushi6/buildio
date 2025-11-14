@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+
 import cors from "cors";
 import llmRoutes from "./routes/code-gen-agent";
 import getTreeRoutes from "./routes/get-tree";
@@ -13,7 +14,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // your frontend URL
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -21,7 +22,7 @@ const io = new Server(server, {
 
 app.use(
   cors({
-    origin: "http://localhost:3000", // match frontend
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
@@ -36,6 +37,7 @@ io.on("connection", (socket) => {
   console.log("a user connected");
   socket.on("getcode", async (prompt) => {
     console.log("message: ");
+
     getcode(prompt, socket);
   });
 });

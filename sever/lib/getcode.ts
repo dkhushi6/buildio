@@ -1,11 +1,11 @@
-import { google } from "@ai-sdk/google";
 import Sandbox from "@e2b/code-interpreter";
-import { stepCountIs, streamText } from "ai";
+import { buildAgent } from "../lib/graph";
+import { createAgent, HumanMessage } from "langchain";
+import { createFile, replaceFile, runCommand } from "./tools";
 import { systemPrompt } from "./systemPrompt";
-import { createFile } from "./tools";
-import { runCommand } from "./tools";
-import { replaceFile } from "./tools";
-
+import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { runMathGraph } from "./dummy/dummyTools";
 export const getcode = async (prompt: string, socket) => {
   const sandbox = await Sandbox.create("9ltypddtnj1uhv1iv3u1");
   console.log("sandbox id is", sandbox.sandboxId);
@@ -17,25 +17,35 @@ export const getcode = async (prompt: string, socket) => {
   console.log("base app made");
 
   console.log("🔗 Base App is available at:", host);
-
-  const { textStream } = streamText({
-    model: google("gemini-2.5-pro"),
-    toolChoice: "required",
-    tools: {
-      createFile: createFile(sandbox, socket),
-      replaceFile: replaceFile(sandbox, socket),
-      runCommand: runCommand(sandbox, socket),
-    },
-
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: prompt },
-    ],
+  const model = new ChatGoogleGenerativeAI({
+    model: "gemini-2.5-pro",
+    temperature: 0.7,
+    maxOutputTokens: 30000, // or 8192
   });
+  // const res = await runMathGraph(model, prompt);
 
-  for await (const textPart of textStream) {
-    console.log(textPart);
-  }
+  await buildAgent(prompt, sandbox, socket, model);
+
+  // const agent = createAgent({
+  //   model,
+  //   tools: [
+  //     createFile(sandbox, socket),
+  //     replaceFile(sandbox, socket),
+  //     runCommand(sandbox, socket),
+  //   ],
+  // });
+
+  // for await (const chunk of await agent.stream(
+  //   {
+  //     messages: [
+  //       { role: "system", content: systemPrompt },
+  //       { role: "user", content: prompt },
+  //     ],
+  //   },
+  //   { streamMode: "custom" }
+  // )) {
+  //   console.log(chunk);
+  // }
 
   socket.emit("done");
 
