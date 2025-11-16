@@ -13,13 +13,36 @@ import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { LovableState } from "./lovable-graph/lovable-state";
 import { randomUUID } from "crypto";
 import { systemPrompt } from "./systemPrompt";
-
+import { newSystemPrompt } from "./new-prompt";
 type LovableStateType = z.infer<typeof LovableState>;
 export type ToolCallLC = {
   tool_call_id: string;
   name: string;
   args: Record<string, any>;
 };
+
+const ToolSchema = z.discriminatedUnion("name", [
+  z.object({
+    name: z.literal("createFile"),
+    args: z.object({
+      path: z.string(),
+      content: z.string(),
+    }),
+  }),
+  z.object({
+    name: z.literal("replaceFile"),
+    args: z.object({
+      path: z.string(),
+      content: z.string(),
+    }),
+  }),
+  z.object({
+    name: z.literal("runCommand"),
+    args: z.object({
+      command: z.string(),
+    }),
+  }),
+]);
 
 export async function buildAgent(
   prompt: string,
@@ -39,64 +62,78 @@ export async function buildAgent(
   };
   const tools = Object.values(toolsByName);
 
-  const modelWithTools = model.bindTools(tools);
+  const modelWithTools = model
+    .bindTools(tools)
+    .withConfig({ metadata: { enableThoughts: false } });
 
   // --- Nodes ---
+  // --- hardened llmCall, toolNode, shouldContinue ---
+
+  // async function llmCall(state: LovableStateType): Promise<LovableStateType> {
+  //   const messages = state.messages.length
+  //     ? state.messages
+  //     : [new SystemMessage(newSystemPrompt), new HumanMessage(prompt)];
+
+  //   try {
+  //     const aiMsg = await modelWithTools.invoke(messages);
+  //     console.log("LLM -> tool_calls:", (aiMsg as any).tool_calls);
+  //     // ✅ Prevent content + tool_calls error
+  //     if ((aiMsg as any).tool_calls?.length > 0) {
+  //       // Only keep tool_calls, remove content
+  //       (aiMsg as any).content = [];
+  //     }
+  //     return {
+  //       messages: [...state.messages, aiMsg],
+  //       llmCalls: (state.llmCalls ?? 0) + 1,
+  //     };
+  //   } catch (err) {
+  //     console.error("LLM invocation failed:", err);
+  //     // push an error ToolMessage so the graph doesn't move incorrectly
+  //     const errorMsg = new ToolMessage({
+  //       content: JSON.stringify({ error: String(err) }),
+  //       tool_call_id: `llm-error-${randomUUID()}`,
+  //       name: "llmInvocationError",
+  //     });
+  //     return {
+  //       messages: [...state.messages, errorMsg],
+  //       llmCalls: (state.llmCalls ?? 0) + 1,
+  //     };
+  //   }
+  // }
   async function llmCall(state: LovableStateType): Promise<LovableStateType> {
     const messages = state.messages.length
       ? state.messages
-      : [new SystemMessage(systemPrompt), new HumanMessage(prompt)];
+      : [new SystemMessage(newSystemPrompt), new HumanMessage(prompt)];
 
-    const response = await modelWithTools.invoke(messages, {
-      tool_choice: "auto",
-    });
-    const newMessages: BaseMessage[] = Array.isArray(response)
-      ? response
-      : [response];
+    try {
+      const aiMsg: any = await modelWithTools.invoke(messages);
 
-    // Parse tool calls from AIMessage content if present
-    for (const msg of newMessages) {
-      let rawContentStr = "";
-
-      if (isAIMessage(msg)) {
-        if (typeof msg.content === "string") {
-          rawContentStr = msg.content;
-        } else if (Array.isArray(msg.content)) {
-          rawContentStr = msg.content.join("\n");
-        } else if (
-          msg.additional_kwargs?.finishMessage &&
-          typeof (msg.additional_kwargs.finishMessage as any).content ===
-            "string"
-        ) {
-          rawContentStr = any.content;
-        }
-
-        if (rawContentStr.includes("tool_calls")) {
-          try {
-            const parsed = JSON.parse(
-              rawContentStr
-                .replace(/```json/g, "")
-                .replace(/```/g, "")
-                .trim()
-            );
-            if (parsed.tool_calls) {
-              msg.tool_calls = parsed.tool_calls.map((t: any) => ({
-                name: t.name,
-                args: t.args,
-                tool_call_id: t.tool_call_id || randomUUID(),
-              }));
-            }
-          } catch (e) {
-            console.warn("Failed to parse tool_calls", e);
-          }
-        }
+      // ✅ 1. Remove content if there are tool_calls
+      if (aiMsg.tool_calls?.length > 0) {
+        aiMsg.content = [];
       }
-    }
 
-    return {
-      messages: [...state.messages, response],
-      llmCalls: (state.llmCalls ?? 0) + 1,
-    };
+      // ✅ 2. Normalize tool_call_id
+      (aiMsg.tool_calls ?? []).forEach((tc: any) => {
+        tc.tool_call_id = tc.id ?? tc.tool_call_id ?? randomUUID();
+      });
+
+      return {
+        messages: [...state.messages, aiMsg],
+        llmCalls: (state.llmCalls ?? 0) + 1,
+      };
+    } catch (err) {
+      console.error("LLM invocation failed:", err);
+      const errorMsg = new ToolMessage({
+        content: JSON.stringify({ error: String(err) }),
+        tool_call_id: `llm-error-${randomUUID()}`,
+        name: "llmInvocationError",
+      });
+      return {
+        messages: [...state.messages, errorMsg],
+        llmCalls: (state.llmCalls ?? 0) + 1,
+      };
+    }
   }
 
   async function toolNode(state: LovableStateType): Promise<LovableStateType> {
@@ -104,55 +141,98 @@ export async function buildAgent(
     if (!last || !isAIMessage(last)) return state;
 
     const toolCalls = (last as any).tool_calls ?? [];
-    const resultMessages: ToolMessage[] = [];
 
-    for (const call of toolCalls) {
-      const tool = toolsByName[call.name];
-      if (!tool) continue;
-
-      const output = await tool.invoke(call.args);
-
-      resultMessages.push(
-        new ToolMessage({
-          content: JSON.stringify(output),
-          tool_call_id: call.tool_call_id, // <-- FIX
-          name: call.name,
-        })
+    // pick FIRST unexecuted tool call (one-by-one)
+    const nextCall: any = toolCalls.find((tc: any) => {
+      const tcId = tc.id ?? tc.tool_call_id ?? tc.toolCallId;
+      return !state.messages.some(
+        (m) => m instanceof ToolMessage && m.tool_call_id === tcId
       );
+    });
+
+    if (!nextCall) return state; // nothing to do
+
+    const tool = toolsByName[nextCall.name];
+    if (!tool) {
+      // push ToolMessage error so LLM sees a function response (and doesn't re-call)
+      const missingToolMsg = new ToolMessage({
+        content: JSON.stringify({
+          error: `Tool not registered: ${nextCall.name}`,
+        }),
+        tool_call_id: nextCall.id ?? nextCall.tool_call_id ?? randomUUID(),
+        name: nextCall.name,
+      });
+      return {
+        messages: [...state.messages, missingToolMsg],
+        llmCalls: state.llmCalls,
+      };
     }
 
-    return {
-      messages: [...state.messages, ...resultMessages],
-      llmCalls: state.llmCalls,
-    };
+    // Execute exactly ONE tool and always return a ToolMessage
+    try {
+      const output = await tool.invoke(nextCall.args);
+      const toolMsg = new ToolMessage({
+        content: typeof output === "string" ? output : JSON.stringify(output),
+        tool_call_id:
+          nextCall.id ??
+          nextCall.tool_call_id ??
+          nextCall.toolCallId ??
+          randomUUID(),
+        name: nextCall.name,
+      });
+
+      return {
+        messages: [...state.messages, toolMsg],
+        llmCalls: state.llmCalls,
+      };
+    } catch (err) {
+      console.error(`Tool ${nextCall.name} failed:`, err);
+      const toolErrorMsg = new ToolMessage({
+        content: JSON.stringify({ error: String(err) }),
+        tool_call_id:
+          nextCall.id ??
+          nextCall.tool_call_id ??
+          nextCall.toolCallId ??
+          randomUUID(),
+        name: nextCall.name,
+      });
+      return {
+        messages: [...state.messages, toolErrorMsg],
+        llmCalls: state.llmCalls,
+      };
+    }
   }
 
-  // --- End condition ---
   async function shouldContinue(state: LovableStateType) {
-    // Check for any AIMessage with tool_calls that haven't been executed
-    for (let i = state.messages.length - 1; i >= 0; i--) {
-      const msg = state.messages[i];
-      if (isAIMessage(msg) && msg.tool_calls && msg.tool_calls.length > 0) {
-        // Make sure these tool_calls are not already executed
-        const executed = state.messages.some(
-          (m) =>
-            m instanceof ToolMessage &&
-            msg.tool_calls?.some(
-              (tc: any) => tc.tool_call_id === m.tool_call_id
-            )
-        );
-        if (!executed) return "toolNode";
-      }
-    }
+    const last = state.messages[state.messages.length - 1];
+    if (!last || !isAIMessage(last)) return END;
+
+    // ✅ Check for unexecuted tool calls first
+    const nextCall = (last.tool_calls ?? []).find((tc: any) => {
+      const id = tc.id ?? tc.tool_call_id ?? tc.toolCallId;
+      return !state.messages.some(
+        (m) => m instanceof ToolMessage && m.tool_call_id === id
+      );
+    });
+
+    if (nextCall) return "toolNode";
+
+    // ✅ No tool calls left → end
     return END;
   }
 
   // --- Build StateGraph ---
-  const agent = new StateGraph(LovableState)
+  const agent = new StateGraph({
+    state: LovableState,
+  })
     .addNode("llmCall", llmCall)
     .addNode("toolNode", toolNode)
     .addEdge(START, "llmCall")
-    .addConditionalEdges("llmCall", shouldContinue, ["toolNode", END])
+    .addConditionalEdges("llmCall", shouldContinue, [
+      "toolNode",
+      "llmCall",
+      END,
+    ])
     .addEdge("toolNode", "llmCall") // loop if tool calls generate more LLM calls
     .compile();
 
