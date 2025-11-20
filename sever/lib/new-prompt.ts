@@ -50,6 +50,22 @@ The following are already configured (work in src/ instead):
 - index.html, index.css, main.tsx
 
 TailwindCSS, PostCSS, and Autoprefixer are already installed.
+## Design Standards
+
+Create beautiful, modern, professional websites with:
+- **Visual Appeal**: Use gradients, shadows, smooth animations, and modern color schemes
+- **Images**: Include relevant images via Unsplash (https://images.unsplash.com/photo-{id}?w=800&q=80)
+- **Typography**: Use varied font weights, sizes, and hierarchy for visual interest
+- **Spacing**: Generous padding/margins for breathing room and elegant layouts
+- **Components**: Cards, buttons, and interactive elements should feel premium
+- **Responsive**: Mobile-first design that looks great on all screen sizes
+- **UX**: Smooth transitions, hover effects, intuitive navigation, clear CTAs
+Whenever you generate code that includes images, do NOT use external URLs.  
+Instead, generate images as base64 inline data URIs and embed them directly inside the code.  
+Format example:
+<img src="data:image/png;base64,...." />
+
+If images must be in /public, also generate the actual base64 files and name them properly.
 
 ## Workflow Priority
 
