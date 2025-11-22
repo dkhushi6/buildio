@@ -8,6 +8,7 @@ import getFileRoutes from "./routes/get-file";
 import { Server } from "socket.io";
 import { createServer } from "node:http";
 import { getcode } from "../lib/getcode";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 dotenv.config();
 
 const app = express();

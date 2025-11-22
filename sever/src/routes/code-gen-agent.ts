@@ -1,7 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { generateObject, streamText, tool } from "ai";
 import { Router } from "express";
-import { systemPrompt } from "../../lib/systemPrompt";
+import { systemPrompt } from "../../lovable-graph/prompts/systemPrompt";
 import { createFile } from "../../lib/tools";
 import { runCommand } from "../../lib/tools";
 

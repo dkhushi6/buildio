@@ -1,11 +1,17 @@
 import Sandbox from "@e2b/code-interpreter";
-import { buildAgent } from "../lib/graph";
-import { createAgent, HumanMessage } from "langchain";
-import { createFile, replaceFile, runCommand } from "./tools";
-import { systemPrompt } from "./systemPrompt";
-import { ChatOpenAI } from "@langchain/openai";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { runMathGraph } from "./dummy/dummyTools";
+import { getCodeAgent, namellm, plannerllm } from "../lovable-graph/llms/llm";
+import {
+  llmOutputState,
+  llmOutputStateType,
+} from "../lovable-graph/state/states";
+import { HumanMessage, SystemMessage, ToolMessage } from "langchain";
+import { namePrompt } from "../lovable-graph/prompts/name-prompt";
+import { plannerPrompt } from "../lovable-graph/prompts/planner-prompt";
+import { randomUUID } from "crypto";
+import { isAIMessage } from "@langchain/core/messages";
+import { newSystemPrompt } from "../lovable-graph/prompts/new-prompt";
+import { StateGraph, START, END } from "@langchain/langgraph";
+import { llmPrompt } from "../lovable-graph/prompts/prompt";
 export const getcode = async (prompt: string, socket) => {
   const sandbox = await Sandbox.create("9ltypddtnj1uhv1iv3u1");
   console.log("sandbox id is", sandbox.sandboxId);
@@ -15,38 +21,192 @@ export const getcode = async (prompt: string, socket) => {
   const url = host;
   socket.emit("url", url);
   console.log("base app made");
+  const codellm = await getCodeAgent(sandbox, socket);
+  const codeAgent = codellm.codellm;
+  const { toolsByName } = codellm;
+  // name node
+  const nameNode = async (state: llmOutputStateType) => {
+    const messages = [new SystemMessage(namePrompt), new HumanMessage(prompt)];
 
+    const res = await namellm.invoke(messages);
+    const name = res.content;
+    socket.emit("project name", name);
+
+    return { projectName: name };
+  };
+  //planner node
+  const plannerNode = async (state: llmOutputStateType) => {
+    let steps = state.steps;
+    const msgs = [new SystemMessage(plannerPrompt), new HumanMessage(prompt)];
+    const res = await plannerllm.invoke(msgs);
+    console.log(res.content);
+    const aiSteps = res.content;
+    socket.emit("step generation complete by llm");
+    return { steps: [...steps, aiSteps] };
+  };
+  //code-gen node
+
+  const codeGenNode = async (state: llmOutputStateType) => {
+    const steps = state.steps;
+
+    if (!steps) {
+      console.log("no steps");
+      return;
+    }
+    const lastStep = steps[steps.length - 1];
+    const stepsString = JSON.stringify(lastStep, null, 2);
+
+    let messages = [...state.messages];
+
+    if (messages.length === 0) {
+      console.log("first llm call");
+      messages = [
+        new SystemMessage(newSystemPrompt),
+        new HumanMessage(stepsString),
+      ];
+    }
+    // console.log("the messages array in llm is ", messages);
+    try {
+      console.log("inside try block of code");
+      const aiMsg: any = await codeAgent.invoke(messages);
+
+      (aiMsg.tool_calls ?? []).forEach((tc: any) => {
+        tc.tool_call_id = tc.id ?? tc.tool_call_id ?? randomUUID();
+      });
+
+      // console.log("aiMsg is", aiMsg);
+      return {
+        messages: [...messages, aiMsg],
+        llmCalls: (state.llmCalls ?? 0) + 1,
+      };
+    } catch (err) {
+      console.error("LLM invocation failed:", err);
+      const errorMsg = new ToolMessage({
+        content: JSON.stringify({ error: String(err) }),
+        tool_call_id: `llm-error-${randomUUID()}`,
+        name: "llmInvocationError",
+      });
+      return {
+        messages: [errorMsg],
+        llmCalls: (state.llmCalls ?? 0) + 1,
+      };
+    }
+  };
+  // tool call node
+  const toolNode = async (state: llmOutputStateType) => {
+    // Get the last AI message with tool calls
+    const last = state.messages[state.messages.length - 1];
+    console.log("messages array from toolNode");
+    console.log("last from toolNode");
+    if (!last || !isAIMessage(last)) return state;
+
+    const toolCalls = last.tool_calls ?? [];
+
+    // Find the first unexecuted tool call
+    const nextCall = toolCalls.find((tc) => {
+      const id = tc.id;
+      return !state.messages.some(
+        (m) => m instanceof ToolMessage && m.tool_call_id === id
+      );
+    });
+
+    if (!nextCall) return state;
+
+    const tool = toolsByName[nextCall.name];
+    const callId = nextCall.id ?? randomUUID();
+
+    if (!tool) {
+      // Return ToolMessage for unknown tool
+      return {
+        messages: [
+          ...state.messages,
+          new ToolMessage({
+            content: JSON.stringify({
+              error: `Tool not registered: ${nextCall.name}`,
+            }),
+            tool_call_id: callId,
+            name: nextCall.name,
+          }),
+        ],
+        llmCalls: state.llmCalls,
+      };
+    }
+
+    try {
+      const output = await tool.invoke(nextCall.args);
+
+      //  Only return the single tool message for this turn
+      const toolMsg = new ToolMessage({
+        content: typeof output === "string" ? output : JSON.stringify(output),
+        tool_call_id: callId,
+        name: nextCall.name,
+      });
+
+      return {
+        messages: [...state.messages, toolMsg],
+        llmCalls: state.llmCalls,
+      };
+    } catch (err) {
+      const errorMsg = new ToolMessage({
+        content: JSON.stringify({ error: String(err) }),
+        tool_call_id: callId,
+        name: nextCall.name,
+      });
+
+      return {
+        messages: [errorMsg],
+        llmCalls: state.llmCalls,
+      };
+    }
+  };
+  // validation node
+  async function shouldContinue(state: llmOutputStateType) {
+    // Find last AI message in the chain
+    const lastAI = [...state.messages].reverse().find((m) => isAIMessage(m));
+    if (!lastAI) return END;
+
+    const nextCall = (lastAI.tool_calls ?? []).find((tc) => {
+      const id = tc.id;
+      return !state.messages.some(
+        (m) => m instanceof ToolMessage && m.tool_call_id === id
+      );
+    });
+
+    if (nextCall) return "toolNode";
+    return END;
+  }
+
+  // const validation = () => {};
+  const projectGraph = new StateGraph({ state: llmOutputState })
+    .addNode("nameNode", nameNode)
+    .addNode("plannerNode", plannerNode)
+    .addNode("codeGenNode", codeGenNode)
+    .addNode("toolNode", toolNode)
+    .addEdge(START, "nameNode")
+    .addEdge(START, "plannerNode")
+    .addEdge("plannerNode", "codeGenNode")
+    .addConditionalEdges("codeGenNode", shouldContinue, [
+      "toolNode",
+      "codeGenNode",
+      END,
+    ])
+    .addEdge("toolNode", "codeGenNode") // loop if tool calls generate more LLM calls
+    .compile();
   console.log("🔗 Base App is available at:", host);
-  const model = new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-pro",
-    temperature: 0.7,
-    maxOutputTokens: 30000, // or 8192
+  const initialState: llmOutputStateType = {
+    projectName: "",
+    steps: [],
+    messages: [],
+    llmCalls: 0,
+  };
+
+  // --- Invoke graph ---
+  const result = await projectGraph.invoke(initialState, {
+    recursionLimit: 50,
   });
-  // const res = await runMathGraph(model, prompt);
+  // withconfig creating a wrapper around the same model
 
-  await buildAgent(prompt, sandbox, socket, model);
-
-  // const agent = createAgent({
-  //   model,
-  //   tools: [
-  //     createFile(sandbox, socket),
-  //     replaceFile(sandbox, socket),
-  //     runCommand(sandbox, socket),
-  //   ],
-  // });
-
-  // for await (const chunk of await agent.stream(
-  //   {
-  //     messages: [
-  //       { role: "system", content: systemPrompt },
-  //       { role: "user", content: prompt },
-  //     ],
-  //   },
-  //   { streamMode: "custom" }
-  // )) {
-  //   console.log(chunk);
-  // }
-
+  // await buildAgent(prompt, sandbox, socket, model);
   socket.emit("done");
 
   console.log("🔗 App is available at:", host);

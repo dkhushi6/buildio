@@ -10,10 +10,9 @@ import z from "zod";
 import { createFile, replaceFile, runCommand } from "./tools";
 import Sandbox from "@e2b/code-interpreter";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { LovableState } from "./lovable-graph/lovable-state";
+import { LovableState } from "../lovable-graph/lovable-state";
 import { randomUUID } from "crypto";
-import { systemPrompt } from "./systemPrompt";
-import { newSystemPrompt } from "./new-prompt";
+import { newSystemPrompt } from "../lovable-graph/prompts/new-prompt";
 type LovableStateType = z.infer<typeof LovableState>;
 export type ToolCallLC = {
   tool_call_id: string;
