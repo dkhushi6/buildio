@@ -12,6 +12,7 @@ export const llmOutputState = z.object({
   steps: z.array(stepSchema),
   messages: z.array(z.custom<BaseMessage>()),
   llmCalls: z.number().optional(),
+  status: z.enum(["pending", "complete"]).default("pending"),
 });
 export const plan_statusState = z
   .enum(["idle", "planning", "executing", "completed", "failed"])
