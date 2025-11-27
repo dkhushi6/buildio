@@ -29,6 +29,8 @@ export const getcode = async (prompt: string, socket) => {
   const codeAgent = codellm.codellm;
   const { toolsByName } = codellm;
   // name node
+  socket.emit("name start");
+
   const nameNode = async (state: llmOutputStateType) => {
     const messages = [new SystemMessage(namePrompt), new HumanMessage(prompt)];
 
@@ -38,6 +40,7 @@ export const getcode = async (prompt: string, socket) => {
 
     return { projectName: name };
   };
+  socket.emit("planningStart");
   //planner node
   const plannerNode = async (state: llmOutputStateType) => {
     let steps = state.steps;
@@ -45,9 +48,11 @@ export const getcode = async (prompt: string, socket) => {
     const res = await plannerllm.invoke(msgs);
     console.log(res.content);
     const aiSteps = res.content;
-    socket.emit("step generation complete by llm");
+    socket.emit("stepsDone");
+
     return { steps: [...steps, aiSteps] };
   };
+
   //code-gen node
 
   const codeGenNode = async (state: llmOutputStateType) => {
@@ -282,7 +287,6 @@ export const getcode = async (prompt: string, socket) => {
   const result = await projectGraph.invoke(initialState, {
     recursionLimit: 100,
   });
-  // withconfig creating a wrapper around the same model
 
   // await buildAgent(prompt, sandbox, socket, model);
   socket.emit("done");

@@ -1,8 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-// import FolderTree, { Item } from "../folder-tree/folder-tree";
 import axios from "axios";
-import { LoaderCircle } from "lucide-react";
+import { Code, Eye, LoaderCircle, FileCode, Layers } from "lucide-react";
 import CodeEditor from "../code-editor";
 import RightSideInitial from "./right-side-initial";
 import { Button } from "../ui/button";
@@ -11,7 +10,6 @@ import FileTree, { FileNode } from "./getTree";
 type RightSideProps = {
   url: string;
   sandboxId: string;
-
   projectMade: boolean;
 };
 
@@ -52,72 +50,122 @@ const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
     }
   };
 
-  // if ( sandboxId) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       <LoaderCircle className="animate-spin w-10 h-10 text-muted-foreground" />
-  //     </div>
-  //   );
-  // }
-
-  // if (!tree) return null;
   return (
-    <div className="h-screen ">
-      <div className="flex justify-start gap-3 p-3 border-b border-[#41413F] sticky top-0 z-10 shadow-sm">
-        <button
-          onClick={() => setViewMode("code")}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-            viewMode === "code"
-              ? "bg-[#393028] text-white dark:bg-[#ffe0c2] dark:text-black shadow-md scale-105"
-              : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700"
-          }`}
-        >
-          Code
-        </button>
-        <button
-          onClick={() => setViewMode("preview")}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-            viewMode === "preview"
-              ? "bg-[#393028] text-white dark:bg-[#ffe0c2] dark:text-black shadow-md scale-105"
-              : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700"
-          }`}
-        >
-          Preview
-        </button>
-      </div>
-      <div className="flex-1 flex ">
-        {/* Toggle bar */}
+    <div className="h-screen flex flex-col bg-[#1C1C1C]">
+      {/* Enhanced Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[#41413F]/50 bg-[#1B1917] sticky top-0 z-10 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#402F1D]/40 rounded-lg border border-[#523613]/30">
+            <Layers className="w-4 h-4 text-amber-600" />
+            <span className="text-sm font-medium text-amber-200">
+              Workspace
+            </span>
+          </div>
+        </div>
 
-        {/* Main view area */}
-        <div className="flex-1 overflow-auto">
-          {viewMode === "code" ? (
-            tree ? (
-              <div className="flex">
-                <div className="w-[30vh] bg-[#1C1C1C] overflow-auto  ">
+        {/* Toggle Buttons - Enhanced with original theme */}
+        <div className="flex gap-2 bg-[#0F0E0D] pz-1.5 rounded-xl border border-[#41413F]/50 shadow-inner">
+          <button
+            onClick={() => setViewMode("code")}
+            className={`group flex items-center gap-2 px-5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+              viewMode === "code"
+                ? "bg-gradient-to-br from-[#523613] to-[#6B4A1F] text-amber-50 shadow-lg shadow-[#523613]/30 scale-105 border border-[#744E1E]"
+                : "text-zinc-400 hover:text-amber-200 hover:bg-[#2A2826]"
+            }`}
+          >
+            <Code
+              className={`w-4 h-4 ${
+                viewMode === "code" ? "animate-pulse" : ""
+              }`}
+            />
+            <span>Code</span>
+          </button>
+          <button
+            onClick={() => setViewMode("preview")}
+            className={`group flex items-center gap-2 px-5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+              viewMode === "preview"
+                ? "bg-gradient-to-br from-[#523613] to-[#6B4A1F] text-amber-50 shadow-lg shadow-[#523613]/30 scale-105 border border-[#744E1E]"
+                : "text-zinc-400 hover:text-amber-200 hover:bg-[#2A2826]"
+            }`}
+          >
+            <Eye
+              className={`w-4 h-4 ${
+                viewMode === "preview" ? "animate-pulse" : ""
+              }`}
+            />
+            <span>Preview</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-hidden">
+        {viewMode === "code" ? (
+          tree ? (
+            <div className="flex h-full">
+              {/* File Tree Sidebar - Enhanced with original theme */}
+              <div className="w-80 bg-[#1C1C1C] border-r border-[#41413F]/50 overflow-auto">
+                <div className="p-3">
                   <FileTree treeData={tree} onFileClick={onFileClick} />
                 </div>
-                <div className="w-[60vh] pt-2">
-                  <CodeEditor code={code} language="javascript" />
-                </div>{" "}
               </div>
-            ) : (
-              <div className="flex items-center justify-center h-screen">
-                <LoaderCircle className="animate-spin w-10 h-10 text-muted-foreground" />
+
+              {/* Code Editor - Enhanced */}
+              <div className="flex-1 bg-[#1C1C1C] overflow-auto">
+                <div className="h-full p-4">
+                  {code ? (
+                    <div className="h-full  overflow-hidden  ">
+                      <CodeEditor code={code} language="javascript" />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full space-y-4">
+                      <FileCode className="w-16 h-16 text-[#523613] animate-pulse" />
+                      <p className="text-lg font-medium text-amber-200">
+                        Select a file to view code
+                      </p>
+                      <p className="text-sm text-zinc-500">
+                        Choose a file from the sidebar to get started
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            )
-          ) : url ? (
-            <iframe
-              src={url}
-              title="Preview"
-              sandbox="allow-scripts allow-same-origin"
-              className="w-full h-screen border-none"
-            />
-          ) : (
-            <div className="flex justify-center items-center h-full text-muted-foreground">
-              No preview available
             </div>
-          )}
-        </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full space-y-4">
+              <LoaderCircle className="animate-spin w-12 h-12 text-amber-600" />
+              <div className="text-center space-y-2">
+                <p className="text-lg font-medium text-amber-200">
+                  Loading project files...
+                </p>
+                <p className="text-sm text-zinc-500">
+                  Setting up your workspace
+                </p>
+              </div>
+            </div>
+          )
+        ) : url ? (
+          <div className="h-full p-4 bg-[#1C1C1C]">
+            <div className="h-full  shadow-xl">
+              <iframe
+                src={url}
+                title="Preview"
+                sandbox="allow-scripts allow-same-origin"
+                className="w-full h-full bg-white"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-zinc-500 space-y-4">
+            <Eye className="w-16 h-16 text-[#523613] animate-pulse" />
+            <p className="text-lg font-medium text-amber-200">
+              No preview available
+            </p>
+            <p className="text-sm text-zinc-600">
+              Preview will appear once your project is ready
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

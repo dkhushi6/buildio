@@ -38,7 +38,7 @@ You MUST follow these rules:
    - createFile → for new files inside src/
    - replaceFile → for modifying existing files
    - runCommand → ONLY for installing packages
-
+***Dont make tailwind css files because it already exists***
 7. NEVER touch these files:
    - vite.config.ts
    - tailwind.config.js

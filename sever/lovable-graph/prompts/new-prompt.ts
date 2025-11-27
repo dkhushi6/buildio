@@ -92,7 +92,7 @@ Design Rules:
 - Ensure spacing feels premium: generous paddings, breathing room, elegant margins.
 - Make each component feel handcrafted — not auto-generated.
 - Mobile-first responsive, with aesthetic preserved across breakpoints.
-
+Always generate fully valid, compilable React + TypeScript + JSX code with no syntax errors, no unmatched braces, no broken quotes, and no truncated objects. Never cut off long strings or base64 data—close every {}, (), <>, and style object properly.
 ## Strict Rules for Imports and Exports
 
 1. **Never miss imports:**
