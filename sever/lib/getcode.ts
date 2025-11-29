@@ -8,15 +8,23 @@ import { HumanMessage, SystemMessage, ToolMessage } from "langchain";
 import { namePrompt } from "../lovable-graph/prompts/name-prompt";
 import { plannerPrompt } from "../lovable-graph/prompts/planner-prompt";
 import { randomUUID } from "crypto";
-import { AIMessage, isAIMessage } from "@langchain/core/messages";
+import { isAIMessage } from "@langchain/core/messages";
 import { newSystemPrompt } from "../lovable-graph/prompts/new-prompt";
 import { StateGraph, START, END } from "@langchain/langgraph";
-import { llmPrompt } from "../lovable-graph/prompts/prompt";
-import {
-  extractImports,
-  extractPackageJson,
-} from "../lovable-graph/validation/missing-import";
-export const getcode = async (prompt: string, socket) => {
+import { Socket } from "socket.io";
+type GetCodePropsTypes = {
+  prompt: string;
+  socket: Socket;
+  userId: string;
+
+  projectId: string;
+};
+export const getcode = async ({
+  prompt,
+  socket,
+  projectId,
+  userId,
+}: GetCodePropsTypes) => {
   const sandbox = await Sandbox.create("9ltypddtnj1uhv1iv3u1");
   console.log("sandbox id is", sandbox.sandboxId);
   const { sandboxId } = sandbox;
@@ -171,75 +179,10 @@ export const getcode = async (prompt: string, socket) => {
     }
   };
 
-  // validation node
-  const validationNode = async (state: llmOutputStateType) => {
-    const aiMessages = state.messages.filter(
-      (m): m is AIMessage => m.type === "ai"
-    );
-
-    let packageJsonDeps: Record<string, string> = {};
-    const allImports: string[] = [];
-
-    // Node built-in modules (ignore these)
-    const nodeBuiltIns = [
-      "fs",
-      "path",
-      "http",
-      "https",
-      "crypto",
-      "os",
-      "util",
-      "events",
-      "stream",
-      "url",
-      "buffer",
-      "querystring",
-      "zlib",
-    ];
-
-    for (const msg of aiMessages) {
-      if (!msg.tool_calls) continue;
-
-      for (const call of msg.tool_calls) {
-        const content: string = call.args.content;
-
-        // Extract package.json if this is a package.json file
-        if (
-          call.name === "createFile" &&
-          call.args.path.endsWith("package.json")
-        ) {
-          const deps = extractPackageJson(content);
-          if (deps) packageJsonDeps = { ...packageJsonDeps, ...deps };
-        }
-
-        // Extract imports from code
-        if (call.name === "createFile" || call.name === "replaceFile") {
-          const imports = extractImports(content);
-          allImports.push(...imports);
-        }
-      }
-    }
-
-    // Function to detect external npm packages
-    const isExternalPackage = (pkg: string) =>
-      !pkg.startsWith(".") &&
-      !pkg.startsWith("/") &&
-      !nodeBuiltIns.includes(pkg);
-
-    // Filter only external packages
-    const missingDeps = allImports
-      .filter(isExternalPackage)
-      .filter((pkg) => !(pkg in packageJsonDeps));
-
-    console.log("All imports:", Array.from(new Set(allImports)));
-    console.log("Dependencies in extracted package.json:", packageJsonDeps);
-    console.log("Missing dependencies:", Array.from(new Set(missingDeps)));
-  };
-
   async function shouldContinue(state: llmOutputStateType) {
     const lastAI = [...state.messages].reverse().find((m) => isAIMessage(m));
 
-    if (!lastAI) return "codeGenNode"; // first generation
+    if (!lastAI) return "codeGenNode";
 
     const nextCall = (lastAI.tool_calls ?? []).find((tc) => {
       const id = tc.id;
@@ -248,30 +191,25 @@ export const getcode = async (prompt: string, socket) => {
       );
     });
 
-    if (nextCall) return "toolNode"; // tools still need to run
-
-    // No tools left → update status and go to validation
+    if (nextCall) return "toolNode";
     state.status = "complete";
-    return "validationNode";
+    return END;
   }
 
-  // const validation = () => {};
   const projectGraph = new StateGraph({ state: llmOutputState })
     .addNode("nameNode", nameNode)
     .addNode("plannerNode", plannerNode)
     .addNode("codeGenNode", codeGenNode)
     .addNode("toolNode", toolNode)
-    .addNode("validationNode", validationNode)
     .addEdge(START, "nameNode")
     .addEdge(START, "plannerNode")
     .addEdge("plannerNode", "codeGenNode")
     .addConditionalEdges("codeGenNode", shouldContinue, [
       "toolNode",
       "codeGenNode",
-      "validationNode",
+      END,
     ])
-    .addEdge("toolNode", "codeGenNode") // loop if tool calls generate more LLM calls
-    .addEdge("validationNode", END) // finish after validation
+    .addEdge("toolNode", "codeGenNode")
     .compile();
 
   console.log("🔗 Base App is available at:", host);
@@ -283,7 +221,6 @@ export const getcode = async (prompt: string, socket) => {
     status: "pending",
   };
 
-  // --- Invoke graph ---
   const result = await projectGraph.invoke(initialState, {
     recursionLimit: 100,
   });

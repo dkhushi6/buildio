@@ -6,20 +6,20 @@ import { ObjectId } from "bson";
 const page = () => {
   const params = useParams();
   const id = params.id as string | undefined;
-  const [chatId, setChatId] = useState("");
+  const [projectId, setprojectId] = useState("");
   useEffect(() => {
     if (id === "new" || !id) {
       //generate a chat id
       const idg = new ObjectId().toHexString();
-      setChatId(idg);
+      setprojectId(idg);
       console.log("Id new chat generated", idg);
     } else {
-      setChatId(id);
+      setprojectId(id);
     }
   }, []);
   return (
     <div>
-      <ResizableBar />
+      <ResizableBar projectId={projectId} />
     </div>
   );
 };

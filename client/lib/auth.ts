@@ -33,7 +33,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // token.id was set in jwt callback
       if (session.user) {
         session.user.id = typeof token.id === "string" ? token.id : "";
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
       }
+
       return session;
     },
   },

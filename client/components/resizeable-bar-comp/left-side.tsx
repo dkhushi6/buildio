@@ -4,6 +4,8 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { io } from "socket.io-client";
 import { Rose, Send, Sparkles } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { getToken } from "@auth/core/jwt";
 
 type ChatMessage = {
   sender: "user" | "system";
@@ -14,15 +16,24 @@ type LeftSideProps = {
   setProjectMade: React.Dispatch<React.SetStateAction<boolean>>;
   setUrl: React.Dispatch<React.SetStateAction<string>>;
   setSandboxId: React.Dispatch<React.SetStateAction<string>>;
+  projectId: string;
 };
 
-const LeftSide = ({ setProjectMade, setUrl, setSandboxId }: LeftSideProps) => {
+const LeftSide = ({
+  setProjectMade,
+  setUrl,
+  setSandboxId,
+  projectId,
+}: LeftSideProps) => {
+  const { data: session } = useSession();
+  if (!session?.user) {
+    console.log("Login first");
+  }
   const [prompt, setPrompt] = useState("");
   const [socketMsg, setSocketMsg] = useState<ChatMessage[]>([]);
   const [messages, setMessages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  /** ADD THIS HELPER */
   const addSocketMsg = (sender: "system" | "user", text: string) => {
     setSocketMsg((prev) => [...prev, { sender, text }]);
   };
@@ -33,7 +44,6 @@ const LeftSide = ({ setProjectMade, setUrl, setSandboxId }: LeftSideProps) => {
       socketBoxRef.current.scrollTop = socketBoxRef.current.scrollHeight;
     }
   }, [socketMsg]);
-
   const handleSend = () => {
     if (!prompt.trim()) return;
 
@@ -47,8 +57,22 @@ const LeftSide = ({ setProjectMade, setUrl, setSandboxId }: LeftSideProps) => {
     try {
       console.log("PROJECT CREATION REQ SEND");
 
+      // const res = await axios.get("/api/auth/token");
+      // const token = res.data;
+      // if (token) {
+      //   console.log("no token");
+      // }
+      if (projectId) {
+        console.log("no projectId");
+      }
+      const userId = session?.user?.id;
+      // console.log("token is", token);
       const socket = io("http://localhost:8080");
-      socket.emit("getcode", prompt);
+      socket.emit("getcode", {
+        prompt,
+        projectId,
+        userId,
+      });
 
       addSocketMsg("system", " Sent prompt to backend…");
 

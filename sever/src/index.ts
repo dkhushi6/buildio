@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
 import cors from "cors";
 import llmRoutes from "./routes/code-gen-agent";
@@ -34,12 +35,19 @@ app.use(express.json());
 app.use("/api", llmRoutes);
 app.use("/api", getTreeRoutes);
 app.use("/api", getFileRoutes);
-io.on("connection", (socket) => {
-  console.log("a user connected");
-  socket.on("getcode", async (prompt) => {
-    console.log("message: ");
 
-    getcode(prompt, socket);
+io.on("connection", (socket) => {
+  // console.log("a user connected");
+  // const token = socket.handshake.auth.token;
+  // try {
+  //   const decoded = jwt.verify(token, process.env.AUTH_SECRET);
+  //   console.log(" Token verified:", decoded);
+  // } catch {
+  //   console.error("Error verifing token");
+  // }
+
+  socket.on("getcode", async (prompt, projectId, userId) => {
+    getcode({ prompt, socket, projectId, userId });
   });
 });
 // Health check route (optional)

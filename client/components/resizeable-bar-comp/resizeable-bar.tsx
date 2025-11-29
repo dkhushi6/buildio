@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import RightSideInitial from "./right-side-initial";
 
-export function ResizableBar() {
+export function ResizableBar({ projectId }: { projectId: string }) {
   const [projectMade, setProjectMade] = useState(false);
 
   const [url, setUrl] = useState("");
@@ -20,6 +20,7 @@ export function ResizableBar() {
     <ResizablePanelGroup direction="horizontal" className="  ">
       <ResizablePanel defaultSize={33} minSize={20} maxSize={50}>
         <LeftSide
+          projectId={projectId}
           setProjectMade={setProjectMade}
           setUrl={setUrl}
           setSandboxId={setSandboxId}
