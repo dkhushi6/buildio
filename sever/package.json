@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.25",
+    "@azure/storage-blob": "^12.29.1",
     "@e2b/code-interpreter": "^2.1.0",
     "@langchain/core": "^1.0.6",
     "@langchain/google-genai": "^1.0.1",
@@ -19,7 +20,9 @@
     "@langchain/langgraph": "^1.0.2",
     "@langchain/openai": "^1.1.2",
     "@langchain/tavily": "^1.0.0",
+    "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.1",
+    "adm-zip": "^0.5.16",
     "ai": "^5.0.82",
     "cors": "^2.8.5",
     "deepagents": "^1.1.1",
@@ -32,6 +35,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
     "@types/node": "^24.9.2",
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",

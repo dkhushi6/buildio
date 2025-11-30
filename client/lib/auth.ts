@@ -1,17 +1,12 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-// import { prisma } from "./prisma";
-interface JWTToken {
-  id?: string;
-  name?: string;
-  email?: string;
-  [key: string]: any;
-}
+import { prisma } from "./prisma";
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
 
-  //   adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma),
 
   providers: [
     GoogleProvider({

@@ -4535,6 +4535,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     userId: string | null
+    zipUrl: string | null
     updatedAt: Date | null
     createdAt: Date | null
   }
@@ -4543,6 +4544,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     userId: string | null
+    zipUrl: string | null
     updatedAt: Date | null
     createdAt: Date | null
   }
@@ -4552,6 +4554,7 @@ export namespace Prisma {
     name: number
     userId: number
     messages: number
+    zipUrl: number
     updatedAt: number
     createdAt: number
     _all: number
@@ -4562,6 +4565,7 @@ export namespace Prisma {
     id?: true
     name?: true
     userId?: true
+    zipUrl?: true
     updatedAt?: true
     createdAt?: true
   }
@@ -4570,6 +4574,7 @@ export namespace Prisma {
     id?: true
     name?: true
     userId?: true
+    zipUrl?: true
     updatedAt?: true
     createdAt?: true
   }
@@ -4579,6 +4584,7 @@ export namespace Prisma {
     name?: true
     userId?: true
     messages?: true
+    zipUrl?: true
     updatedAt?: true
     createdAt?: true
     _all?: true
@@ -4661,6 +4667,7 @@ export namespace Prisma {
     name: string
     userId: string
     messages: JsonValue
+    zipUrl: string | null
     updatedAt: Date
     createdAt: Date
     _count: ProjectCountAggregateOutputType | null
@@ -4687,6 +4694,7 @@ export namespace Prisma {
     name?: boolean
     userId?: boolean
     messages?: boolean
+    zipUrl?: boolean
     updatedAt?: boolean
     createdAt?: boolean
     user?: boolean | userDefaultArgs<ExtArgs>
@@ -4697,6 +4705,7 @@ export namespace Prisma {
     name?: boolean
     userId?: boolean
     messages?: boolean
+    zipUrl?: boolean
     updatedAt?: boolean
     createdAt?: boolean
     user?: boolean | userDefaultArgs<ExtArgs>
@@ -4707,6 +4716,7 @@ export namespace Prisma {
     name?: boolean
     userId?: boolean
     messages?: boolean
+    zipUrl?: boolean
     updatedAt?: boolean
     createdAt?: boolean
     user?: boolean | userDefaultArgs<ExtArgs>
@@ -4717,11 +4727,12 @@ export namespace Prisma {
     name?: boolean
     userId?: boolean
     messages?: boolean
+    zipUrl?: boolean
     updatedAt?: boolean
     createdAt?: boolean
   }
 
-  export type projectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "userId" | "messages" | "updatedAt" | "createdAt", ExtArgs["result"]["project"]>
+  export type projectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "userId" | "messages" | "zipUrl" | "updatedAt" | "createdAt", ExtArgs["result"]["project"]>
   export type projectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | userDefaultArgs<ExtArgs>
   }
@@ -4742,6 +4753,7 @@ export namespace Prisma {
       name: string
       userId: string
       messages: Prisma.JsonValue
+      zipUrl: string | null
       updatedAt: Date
       createdAt: Date
     }, ExtArgs["result"]["project"]>
@@ -5172,6 +5184,7 @@ export namespace Prisma {
     readonly name: FieldRef<"project", 'String'>
     readonly userId: FieldRef<"project", 'String'>
     readonly messages: FieldRef<"project", 'Json'>
+    readonly zipUrl: FieldRef<"project", 'String'>
     readonly updatedAt: FieldRef<"project", 'DateTime'>
     readonly createdAt: FieldRef<"project", 'DateTime'>
   }
@@ -5646,6 +5659,7 @@ export namespace Prisma {
     name: 'name',
     userId: 'userId',
     messages: 'messages',
+    zipUrl: 'zipUrl',
     updatedAt: 'updatedAt',
     createdAt: 'createdAt'
   };
@@ -5983,6 +5997,7 @@ export namespace Prisma {
     name?: StringFilter<"project"> | string
     userId?: StringFilter<"project"> | string
     messages?: JsonFilter<"project">
+    zipUrl?: StringNullableFilter<"project"> | string | null
     updatedAt?: DateTimeFilter<"project"> | Date | string
     createdAt?: DateTimeFilter<"project"> | Date | string
     user?: XOR<UserScalarRelationFilter, userWhereInput>
@@ -5993,6 +6008,7 @@ export namespace Prisma {
     name?: SortOrder
     userId?: SortOrder
     messages?: SortOrder
+    zipUrl?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     createdAt?: SortOrder
     user?: userOrderByWithRelationInput
@@ -6006,6 +6022,7 @@ export namespace Prisma {
     name?: StringFilter<"project"> | string
     userId?: StringFilter<"project"> | string
     messages?: JsonFilter<"project">
+    zipUrl?: StringNullableFilter<"project"> | string | null
     updatedAt?: DateTimeFilter<"project"> | Date | string
     createdAt?: DateTimeFilter<"project"> | Date | string
     user?: XOR<UserScalarRelationFilter, userWhereInput>
@@ -6016,6 +6033,7 @@ export namespace Prisma {
     name?: SortOrder
     userId?: SortOrder
     messages?: SortOrder
+    zipUrl?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     createdAt?: SortOrder
     _count?: projectCountOrderByAggregateInput
@@ -6031,6 +6049,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"project"> | string
     userId?: StringWithAggregatesFilter<"project"> | string
     messages?: JsonWithAggregatesFilter<"project">
+    zipUrl?: StringNullableWithAggregatesFilter<"project"> | string | null
     updatedAt?: DateTimeWithAggregatesFilter<"project"> | Date | string
     createdAt?: DateTimeWithAggregatesFilter<"project"> | Date | string
   }
@@ -6259,6 +6278,7 @@ export namespace Prisma {
     id: string
     name: string
     messages: JsonNullValueInput | InputJsonValue
+    zipUrl?: string | null
     updatedAt?: Date | string
     createdAt?: Date | string
     user: userCreateNestedOneWithoutProjectInput
@@ -6269,6 +6289,7 @@ export namespace Prisma {
     name: string
     userId: string
     messages: JsonNullValueInput | InputJsonValue
+    zipUrl?: string | null
     updatedAt?: Date | string
     createdAt?: Date | string
   }
@@ -6277,6 +6298,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
+    zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: userUpdateOneRequiredWithoutProjectNestedInput
@@ -6287,6 +6309,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
+    zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -6296,6 +6319,7 @@ export namespace Prisma {
     name: string
     userId: string
     messages: JsonNullValueInput | InputJsonValue
+    zipUrl?: string | null
     updatedAt?: Date | string
     createdAt?: Date | string
   }
@@ -6304,6 +6328,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
+    zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -6313,6 +6338,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
+    zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -6631,6 +6657,7 @@ export namespace Prisma {
     name?: SortOrder
     userId?: SortOrder
     messages?: SortOrder
+    zipUrl?: SortOrder
     updatedAt?: SortOrder
     createdAt?: SortOrder
   }
@@ -6639,6 +6666,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     userId?: SortOrder
+    zipUrl?: SortOrder
     updatedAt?: SortOrder
     createdAt?: SortOrder
   }
@@ -6647,6 +6675,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     userId?: SortOrder
+    zipUrl?: SortOrder
     updatedAt?: SortOrder
     createdAt?: SortOrder
   }
@@ -7117,6 +7146,7 @@ export namespace Prisma {
     id: string
     name: string
     messages: JsonNullValueInput | InputJsonValue
+    zipUrl?: string | null
     updatedAt?: Date | string
     createdAt?: Date | string
   }
@@ -7125,6 +7155,7 @@ export namespace Prisma {
     id: string
     name: string
     messages: JsonNullValueInput | InputJsonValue
+    zipUrl?: string | null
     updatedAt?: Date | string
     createdAt?: Date | string
   }
@@ -7223,6 +7254,7 @@ export namespace Prisma {
     name?: StringFilter<"project"> | string
     userId?: StringFilter<"project"> | string
     messages?: JsonFilter<"project">
+    zipUrl?: StringNullableFilter<"project"> | string | null
     updatedAt?: DateTimeFilter<"project"> | Date | string
     createdAt?: DateTimeFilter<"project"> | Date | string
   }
@@ -7419,6 +7451,7 @@ export namespace Prisma {
     id: string
     name: string
     messages: JsonNullValueInput | InputJsonValue
+    zipUrl?: string | null
     updatedAt?: Date | string
     createdAt?: Date | string
   }
@@ -7487,6 +7520,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
+    zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7495,6 +7529,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
+    zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7503,6 +7538,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
+    zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

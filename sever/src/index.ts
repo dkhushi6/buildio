@@ -9,6 +9,7 @@ import getFileRoutes from "./routes/get-file";
 import { Server } from "socket.io";
 import { createServer } from "node:http";
 import { getcode } from "../lib/getcode";
+import getReloadMsgRoutes from "./routes/reload-project";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use(express.json());
 app.use("/api", llmRoutes);
 app.use("/api", getTreeRoutes);
 app.use("/api", getFileRoutes);
+app.use("/api", getReloadMsgRoutes);
 
 io.on("connection", (socket) => {
   // console.log("a user connected");
@@ -45,9 +47,36 @@ io.on("connection", (socket) => {
   // } catch {
   //   console.error("Error verifing token");
   // }
+  socket.data.projectId = null;
+  socket.data.userId = null;
+  socket.data.prompt = null;
 
-  socket.on("getcode", async (prompt, projectId, userId) => {
-    getcode({ prompt, socket, projectId, userId });
+  socket.on("projectId", (id) => {
+    socket.data.projectId = id;
+    console.log("Received projectId:", id);
+  });
+
+  socket.on("userId", (id) => {
+    socket.data.userId = id;
+    console.log("Received userId:", id);
+  });
+  socket.on("getcode", async (prompt) => {
+    if (!prompt) return console.log("❌ No prompt received");
+    socket.data.prompt = prompt; // store it
+
+    // Now check if everything exists
+    if (!socket.data.projectId || !socket.data.userId) {
+      console.log("⚠ Missing projectId or userId, waiting...");
+      return;
+    }
+    if (prompt) {
+      getcode({
+        prompt: socket.data.prompt,
+        projectId: socket.data.projectId,
+        userId: socket.data.userId,
+        socket,
+      });
+    }
   });
 });
 // Health check route (optional)

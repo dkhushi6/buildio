@@ -12,22 +12,29 @@ import { isAIMessage } from "@langchain/core/messages";
 import { newSystemPrompt } from "../lovable-graph/prompts/new-prompt";
 import { StateGraph, START, END } from "@langchain/langgraph";
 import { Socket } from "socket.io";
+import { prisma } from "../lib/prisma";
+import { Prisma } from "../src/generated/prisma";
+import { SaveProjectsAzur } from "../lovable-graph/azure/save-project";
 type GetCodePropsTypes = {
   prompt: string;
-  socket: Socket;
-  userId: string;
-
   projectId: string;
+  userId: string;
+  socket: Socket;
 };
+
 export const getcode = async ({
   prompt,
-  socket,
   projectId,
   userId,
+  socket,
 }: GetCodePropsTypes) => {
   const sandbox = await Sandbox.create("9ltypddtnj1uhv1iv3u1");
   console.log("sandbox id is", sandbox.sandboxId);
   const { sandboxId } = sandbox;
+  console.log("promptis ", prompt);
+  console.log("projectid", projectId);
+  console.log("userid", userId);
+
   socket.emit("sandboxId", sandboxId);
   const host = sandbox.getHost(5173);
   const url = host;
@@ -40,6 +47,11 @@ export const getcode = async ({
   socket.emit("name start");
 
   const nameNode = async (state: llmOutputStateType) => {
+    if (!prompt) {
+      console.log("no prompt");
+
+      return;
+    }
     const messages = [new SystemMessage(namePrompt), new HumanMessage(prompt)];
 
     const res = await namellm.invoke(messages);
@@ -82,6 +94,22 @@ export const getcode = async ({
         new HumanMessage(stepsString),
       ];
     }
+    // const oldProject = await prisma.project.findFirst({
+    //   where: { id: projectId, userId },
+    // });
+    // if (oldProject) {
+    //   console.log("project already exist");
+    //   return;
+    // } else {
+    //   await prisma.project.create({
+    //     data: {
+    //       id: projectId,
+    //       userId,
+    //       name: "newProject",
+    //       messages: JSON.parse(JSON.stringify(messages.map((m) => m.toJSON()))),
+    //     },
+    //   });
+    // }
     // console.log("the messages array in llm is ", messages);
     try {
       console.log("inside try block of code");
@@ -92,6 +120,18 @@ export const getcode = async ({
       });
 
       console.log("aiMsg content", aiMsg.content[0].type);
+      // await prisma.project.update({
+      //   where: { id: projectId, userId },
+      //   data: {
+      //     messages: JSON.parse(
+      //       JSON.stringify([
+      //         ...messages.map((m) => m.toJSON()),
+      //         aiMsg.toJSON ? aiMsg.toJSON() : aiMsg,
+      //       ])
+      //     ),
+      //   },
+      // });
+
       // console.log("aiMsg is", aiMsg);
       // console.log("the messages array is ", messages);
       return {
@@ -160,7 +200,17 @@ export const getcode = async ({
         tool_call_id: callId,
         name: nextCall.name,
       });
-
+      // await prisma.project.update({
+      //   where: { id: projectId, userId },
+      //   data: {
+      //     messages: JSON.parse(
+      //       JSON.stringify([
+      //         ...state.messages.map((m) => m.toJSON()),
+      //         toolMsg.toJSON ? toolMsg.toJSON() : toolMsg,
+      //       ])
+      //     ),
+      //   },
+      // });
       return {
         messages: [...state.messages, toolMsg],
         llmCalls: state.llmCalls,
@@ -224,9 +274,29 @@ export const getcode = async ({
   const result = await projectGraph.invoke(initialState, {
     recursionLimit: 100,
   });
+  const oldProject = await prisma.project.findFirst({
+    where: { id: projectId, userId },
+  });
+  if (oldProject) {
+    console.log("project already exist");
+    return;
+  }
+  const messagesToSave = result.messages.map((m) => m.toJSON());
+
+  await prisma.project.create({
+    data: {
+      id: projectId,
+      userId,
+      name: "new pro",
+      messages: messagesToSave as unknown as Prisma.JsonValue, // ← cast
+    },
+  });
 
   // await buildAgent(prompt, sandbox, socket, model);
   socket.emit("done");
+
+  // SaveProjectsAzur(sandbox, projectId, userId);
+  socket.emit("azur-done");
 
   console.log("🔗 App is available at:", host);
 };

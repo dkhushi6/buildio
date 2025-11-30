@@ -68,11 +68,9 @@ const LeftSide = ({
       const userId = session?.user?.id;
       // console.log("token is", token);
       const socket = io("http://localhost:8080");
-      socket.emit("getcode", {
-        prompt,
-        projectId,
-        userId,
-      });
+      socket.emit("projectId", projectId);
+      socket.emit("userId", userId);
+      socket.emit("getcode", prompt);
 
       addSocketMsg("system", " Sent prompt to backend…");
 
@@ -108,6 +106,9 @@ const LeftSide = ({
 
       socket.on("done", () => {
         addSocketMsg("system", "$ All steps completed.");
+      });
+      socket.on("azur-done", () => {
+        addSocketMsg("system", "$ Project Saved in Azur.");
         setProjectMade(true);
       });
     } catch (err) {
