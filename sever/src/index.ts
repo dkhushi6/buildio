@@ -6,10 +6,12 @@ import cors from "cors";
 import llmRoutes from "./routes/code-gen-agent";
 import getTreeRoutes from "./routes/get-tree";
 import getFileRoutes from "./routes/get-file";
+import getUserProjectRoutes from "./routes/get-all-projects";
 import { Server } from "socket.io";
 import { createServer } from "node:http";
 import { getcode } from "../lib/getcode";
 import getReloadMsgRoutes from "./routes/reload-project";
+import testRoute from "./routes/test";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 dotenv.config();
 
@@ -37,6 +39,8 @@ app.use("/api", llmRoutes);
 app.use("/api", getTreeRoutes);
 app.use("/api", getFileRoutes);
 app.use("/api", getReloadMsgRoutes);
+app.use("/api", getUserProjectRoutes);
+app.use("/api", testRoute);
 
 io.on("connection", (socket) => {
   // console.log("a user connected");

@@ -295,7 +295,7 @@ export const getcode = async ({
   // await buildAgent(prompt, sandbox, socket, model);
   socket.emit("done");
 
-  // SaveProjectsAzur(sandbox, projectId, userId);
+  SaveProjectsAzur(sandboxId, projectId, userId);
   socket.emit("azur-done");
 
   console.log("🔗 App is available at:", host);

@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import { Router } from "express";
-
+import { ReloadOldProject } from "../../lovable-graph/azure/reload-old-project";
 const router = Router();
 router.post("/reload", async (req, res) => {
   const { projectId, userId } = req.body;
@@ -16,7 +16,10 @@ router.post("/reload", async (req, res) => {
   if (!oldProject) {
     return res.json({ messages: "no project for this id found" });
   }
-  return res.json({ message: "project found", project: oldProject });
+  const project = await ReloadOldProject({ projectId, userId });
+  const { url } = project;
+
+  return res.json({ message: "project found", project: oldProject, url });
 });
 
 export default router;

@@ -14,14 +14,41 @@ const IGNORE_PATHS = [
   ".turbo",
   ".idea",
   ".vscode",
-  "package-lock.json",
-  "yarn.lock",
-  "pnpm-lock.yaml",
   ".DS_Store",
   "tmp",
   "logs",
-  ".env",
+  ".bash_logout",
+  ".bashrc",
+  ".npm",
 ];
+const shouldIgnore = (path: string) => {
+  return IGNORE_PATHS.some((ignore) => path.includes(ignore));
+};
+
+const getFiles = async (sandboxId, path = ".") => {
+  const sandbox = await Sandbox.connect(sandboxId);
+  const entries = await sandbox.files.list(path);
+
+  let files = [];
+  for (const file of entries) {
+    if (shouldIgnore(file.path)) {
+      console.log("IGNORING:", file.path);
+      continue;
+    }
+    if (file.type === "file") {
+      console.log("its a file", file.path);
+      const content = await sandbox.files.read(file.path);
+
+      files.push({ path: file.path, content });
+    } else if (file.type === "dir") {
+      console.log("its a dir", file.path);
+
+      const sub = await getFiles(sandboxId, file.path);
+      files = files.concat(sub);
+    }
+  }
+  return files;
+};
 const accountName = process.env.AZURE_STORAGE_ACCOUNT;
 const accountKey = process.env.AZURE_STORAGE_KEY;
 if (!accountName || !accountKey) {
@@ -45,23 +72,30 @@ const containerName = "khushi-projects"; // create in Azure portal
 const containerClient = blobServiceClient.getContainerClient(containerName);
 
 export async function SaveProjectsAzur(
-  sandbox: Sandbox,
+  //   sandbox: Sandbox,
+  sandboxId: string,
   projectId: string,
   userId: string
 ) {
   console.log("inside azure code");
   const zip = new AdmZip();
-  const files = await sandbox.files.list("/");
-
+  const files = await getFiles(sandboxId);
+  console.log("files arr from main function is", files);
   for (const file of files) {
-    const shouldIgnore = IGNORE_PATHS.some((ignore) =>
-      file.path.startsWith(ignore)
-    );
-    console.log("file is", file);
-    if (shouldIgnore) continue;
-    const content = await sandbox.files.read(file.path);
-    zip.addFile(file.path, Buffer.from(content));
+    let zipPath = file.path;
+
+    // Remove /home/user prefix
+    if (zipPath.startsWith("/home/user/")) {
+      zipPath = zipPath.replace("/home/user/", "");
+    } else if (zipPath.startsWith("/home/user")) {
+      zipPath = zipPath.replace("/home/user", "");
+    }
+
+    zip.addFile(zipPath, Buffer.from(file.content));
+
+    console.log("file added to ZIP:", zipPath);
   }
+
   const blobName = `${projectId}.zip`;
 
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
@@ -69,6 +103,7 @@ export async function SaveProjectsAzur(
   await blockBlobClient.uploadData(zipBuffer, {
     blobHTTPHeaders: { blobContentType: "application/zip" },
   });
+  console.log("blob url got", blockBlobClient.url);
   const oldProject = await prisma.project.findFirst({
     where: {
       id: projectId,
