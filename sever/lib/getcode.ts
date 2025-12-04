@@ -13,7 +13,7 @@ import { newSystemPrompt } from "../lovable-graph/prompts/new-prompt";
 import { StateGraph, START, END } from "@langchain/langgraph";
 import { Socket } from "socket.io";
 import { prisma } from "../lib/prisma";
-import { Prisma } from "../src/generated/prisma";
+import { Prisma } from "../lib/generated/prisma";
 import { SaveProjectsAzur } from "../lovable-graph/azure/save-project";
 type GetCodePropsTypes = {
   prompt: string;
@@ -282,7 +282,6 @@ export const getcode = async ({
     return;
   }
   const messagesToSave = result.messages.map((m) => m.toJSON());
-
   await prisma.project.create({
     data: {
       id: projectId,
