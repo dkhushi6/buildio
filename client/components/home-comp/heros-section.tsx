@@ -2,13 +2,15 @@
 import React, { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Navbar from "../navbar";
+import { redirect } from "next/navigation";
 
 export default function LandingPage() {
   const [prompt, setPrompt] = useState("");
 
   const handleSubmit = () => {
     if (prompt.trim()) {
-      alert(`Creating: ${prompt}`);
+      localStorage.setItem("prompt", prompt);
+      redirect("/chat/new");
     }
   };
 

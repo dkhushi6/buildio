@@ -50,6 +50,7 @@ model session {
 model project{
   id String @id @unique
   name String
+  prompt String
   userId String
   user user @relation(fields: [userId], references: [id])
   messages Json

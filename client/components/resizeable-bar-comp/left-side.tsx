@@ -1,11 +1,9 @@
 "use client";
-import React, { useState } from "react";
-import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
+import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { Rose, Send, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { getToken } from "@auth/core/jwt";
+import Link from "next/link";
 
 type ChatMessage = {
   sender: "user" | "system";
@@ -51,17 +49,19 @@ const LeftSide = ({
     sendPrompt();
     setPrompt("");
   };
-
+  useEffect(() => {
+    const initialPrompt = localStorage.getItem("prompt");
+    if (initialPrompt) {
+      setPrompt(initialPrompt);
+    }
+    localStorage.setItem("prompt", "");
+  }, [prompt]);
   const sendPrompt = async () => {
     setLoading(true);
+
     try {
       console.log("PROJECT CREATION REQ SEND");
 
-      // const res = await axios.get("/api/auth/token");
-      // const token = res.data;
-      // if (token) {
-      //   console.log("no token");
-      // }
       if (projectId) {
         console.log("no projectId");
       }
@@ -121,20 +121,22 @@ const LeftSide = ({
   return (
     <div className="relative h-screen flex flex-col text-foreground bg-gradient-to-b from-[#1B1917] to-[#151311]">
       {/* Top bar - Enhanced */}
-      <div className="flex justify-start gap-3 p-4 border-b items-center border-[#41413F]/50 backdrop-blur-sm sticky top-0 z-10 bg-[#1B1917]/80">
-        <div className="flex rounded-xl p-2.5 bg-gradient-to-br from-[#523613] to-[#6B4A1F] shadow-lg shadow-[#523613]/20 hover:shadow-[#523613]/40 transition-all duration-300 hover:scale-105">
-          <Rose className="text-amber-50 w-5 h-5" />
-        </div>
-        <div className="text-amber-50 font-semibold text-lg tracking-tight">
-          New project
-        </div>
-        {loading && (
-          <div className="ml-auto flex items-center gap-2 text-amber-200/60 text-sm">
-            <Sparkles className="w-4 h-4 animate-pulse" />
-            <span>Creating...</span>
+      <Link href={"/"}>
+        <div className="flex justify-start gap-3 p-4 border-b items-center border-[#41413F]/50 backdrop-blur-sm sticky top-0 z-10 bg-[#1B1917]/80">
+          <div className="flex rounded-xl p-2.5 bg-gradient-to-br from-[#523613] to-[#6B4A1F] shadow-lg shadow-[#523613]/20 hover:shadow-[#523613]/40 transition-all duration-300 hover:scale-105">
+            <Rose className="text-amber-50 w-5 h-5" />
           </div>
-        )}
-      </div>
+          <div className="text-amber-50 font-semibold text-lg tracking-tight">
+            Build ai
+          </div>
+          {loading && (
+            <div className="ml-auto flex items-center gap-2 text-amber-200/60 text-sm">
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              <span>Creating...</span>
+            </div>
+          )}
+        </div>
+      </Link>
 
       {/* User Messages (right side) - Enhanced */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">

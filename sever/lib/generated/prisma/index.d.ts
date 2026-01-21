@@ -4549,6 +4549,7 @@ export namespace Prisma {
   export type ProjectMinAggregateOutputType = {
     id: string | null
     name: string | null
+    prompt: string | null
     userId: string | null
     zipUrl: string | null
     updatedAt: Date | null
@@ -4558,6 +4559,7 @@ export namespace Prisma {
   export type ProjectMaxAggregateOutputType = {
     id: string | null
     name: string | null
+    prompt: string | null
     userId: string | null
     zipUrl: string | null
     updatedAt: Date | null
@@ -4567,6 +4569,7 @@ export namespace Prisma {
   export type ProjectCountAggregateOutputType = {
     id: number
     name: number
+    prompt: number
     userId: number
     messages: number
     zipUrl: number
@@ -4579,6 +4582,7 @@ export namespace Prisma {
   export type ProjectMinAggregateInputType = {
     id?: true
     name?: true
+    prompt?: true
     userId?: true
     zipUrl?: true
     updatedAt?: true
@@ -4588,6 +4592,7 @@ export namespace Prisma {
   export type ProjectMaxAggregateInputType = {
     id?: true
     name?: true
+    prompt?: true
     userId?: true
     zipUrl?: true
     updatedAt?: true
@@ -4597,6 +4602,7 @@ export namespace Prisma {
   export type ProjectCountAggregateInputType = {
     id?: true
     name?: true
+    prompt?: true
     userId?: true
     messages?: true
     zipUrl?: true
@@ -4680,6 +4686,7 @@ export namespace Prisma {
   export type ProjectGroupByOutputType = {
     id: string
     name: string
+    prompt: string
     userId: string
     messages: JsonValue
     zipUrl: string | null
@@ -4707,6 +4714,7 @@ export namespace Prisma {
   export type projectSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    prompt?: boolean
     userId?: boolean
     messages?: boolean
     zipUrl?: boolean
@@ -4718,6 +4726,7 @@ export namespace Prisma {
   export type projectSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    prompt?: boolean
     userId?: boolean
     messages?: boolean
     zipUrl?: boolean
@@ -4729,6 +4738,7 @@ export namespace Prisma {
   export type projectSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    prompt?: boolean
     userId?: boolean
     messages?: boolean
     zipUrl?: boolean
@@ -4740,6 +4750,7 @@ export namespace Prisma {
   export type projectSelectScalar = {
     id?: boolean
     name?: boolean
+    prompt?: boolean
     userId?: boolean
     messages?: boolean
     zipUrl?: boolean
@@ -4747,7 +4758,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type projectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "userId" | "messages" | "zipUrl" | "updatedAt" | "createdAt", ExtArgs["result"]["project"]>
+  export type projectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "prompt" | "userId" | "messages" | "zipUrl" | "updatedAt" | "createdAt", ExtArgs["result"]["project"]>
   export type projectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | userDefaultArgs<ExtArgs>
   }
@@ -4766,6 +4777,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
+      prompt: string
       userId: string
       messages: Prisma.JsonValue
       zipUrl: string | null
@@ -5197,6 +5209,7 @@ export namespace Prisma {
   interface projectFieldRefs {
     readonly id: FieldRef<"project", 'String'>
     readonly name: FieldRef<"project", 'String'>
+    readonly prompt: FieldRef<"project", 'String'>
     readonly userId: FieldRef<"project", 'String'>
     readonly messages: FieldRef<"project", 'Json'>
     readonly zipUrl: FieldRef<"project", 'String'>
@@ -5672,6 +5685,7 @@ export namespace Prisma {
   export const ProjectScalarFieldEnum: {
     id: 'id',
     name: 'name',
+    prompt: 'prompt',
     userId: 'userId',
     messages: 'messages',
     zipUrl: 'zipUrl',
@@ -6010,6 +6024,7 @@ export namespace Prisma {
     NOT?: projectWhereInput | projectWhereInput[]
     id?: StringFilter<"project"> | string
     name?: StringFilter<"project"> | string
+    prompt?: StringFilter<"project"> | string
     userId?: StringFilter<"project"> | string
     messages?: JsonFilter<"project">
     zipUrl?: StringNullableFilter<"project"> | string | null
@@ -6021,6 +6036,7 @@ export namespace Prisma {
   export type projectOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
+    prompt?: SortOrder
     userId?: SortOrder
     messages?: SortOrder
     zipUrl?: SortOrderInput | SortOrder
@@ -6035,6 +6051,7 @@ export namespace Prisma {
     OR?: projectWhereInput[]
     NOT?: projectWhereInput | projectWhereInput[]
     name?: StringFilter<"project"> | string
+    prompt?: StringFilter<"project"> | string
     userId?: StringFilter<"project"> | string
     messages?: JsonFilter<"project">
     zipUrl?: StringNullableFilter<"project"> | string | null
@@ -6046,6 +6063,7 @@ export namespace Prisma {
   export type projectOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
+    prompt?: SortOrder
     userId?: SortOrder
     messages?: SortOrder
     zipUrl?: SortOrderInput | SortOrder
@@ -6062,6 +6080,7 @@ export namespace Prisma {
     NOT?: projectScalarWhereWithAggregatesInput | projectScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"project"> | string
     name?: StringWithAggregatesFilter<"project"> | string
+    prompt?: StringWithAggregatesFilter<"project"> | string
     userId?: StringWithAggregatesFilter<"project"> | string
     messages?: JsonWithAggregatesFilter<"project">
     zipUrl?: StringNullableWithAggregatesFilter<"project"> | string | null
@@ -6292,6 +6311,7 @@ export namespace Prisma {
   export type projectCreateInput = {
     id: string
     name: string
+    prompt: string
     messages: JsonNullValueInput | InputJsonValue
     zipUrl?: string | null
     updatedAt?: Date | string
@@ -6302,6 +6322,7 @@ export namespace Prisma {
   export type projectUncheckedCreateInput = {
     id: string
     name: string
+    prompt: string
     userId: string
     messages: JsonNullValueInput | InputJsonValue
     zipUrl?: string | null
@@ -6312,6 +6333,7 @@ export namespace Prisma {
   export type projectUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
     zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6322,6 +6344,7 @@ export namespace Prisma {
   export type projectUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
     zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -6332,6 +6355,7 @@ export namespace Prisma {
   export type projectCreateManyInput = {
     id: string
     name: string
+    prompt: string
     userId: string
     messages: JsonNullValueInput | InputJsonValue
     zipUrl?: string | null
@@ -6342,6 +6366,7 @@ export namespace Prisma {
   export type projectUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
     zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6351,6 +6376,7 @@ export namespace Prisma {
   export type projectUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
     zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -6670,6 +6696,7 @@ export namespace Prisma {
   export type projectCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    prompt?: SortOrder
     userId?: SortOrder
     messages?: SortOrder
     zipUrl?: SortOrder
@@ -6680,6 +6707,7 @@ export namespace Prisma {
   export type projectMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    prompt?: SortOrder
     userId?: SortOrder
     zipUrl?: SortOrder
     updatedAt?: SortOrder
@@ -6689,6 +6717,7 @@ export namespace Prisma {
   export type projectMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    prompt?: SortOrder
     userId?: SortOrder
     zipUrl?: SortOrder
     updatedAt?: SortOrder
@@ -7160,6 +7189,7 @@ export namespace Prisma {
   export type projectCreateWithoutUserInput = {
     id: string
     name: string
+    prompt: string
     messages: JsonNullValueInput | InputJsonValue
     zipUrl?: string | null
     updatedAt?: Date | string
@@ -7169,6 +7199,7 @@ export namespace Prisma {
   export type projectUncheckedCreateWithoutUserInput = {
     id: string
     name: string
+    prompt: string
     messages: JsonNullValueInput | InputJsonValue
     zipUrl?: string | null
     updatedAt?: Date | string
@@ -7267,6 +7298,7 @@ export namespace Prisma {
     NOT?: projectScalarWhereInput | projectScalarWhereInput[]
     id?: StringFilter<"project"> | string
     name?: StringFilter<"project"> | string
+    prompt?: StringFilter<"project"> | string
     userId?: StringFilter<"project"> | string
     messages?: JsonFilter<"project">
     zipUrl?: StringNullableFilter<"project"> | string | null
@@ -7465,6 +7497,7 @@ export namespace Prisma {
   export type projectCreateManyUserInput = {
     id: string
     name: string
+    prompt: string
     messages: JsonNullValueInput | InputJsonValue
     zipUrl?: string | null
     updatedAt?: Date | string
@@ -7534,6 +7567,7 @@ export namespace Prisma {
   export type projectUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
     zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7543,6 +7577,7 @@ export namespace Prisma {
   export type projectUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
     zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7552,6 +7587,7 @@ export namespace Prisma {
   export type projectUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
     messages?: JsonNullValueInput | InputJsonValue
     zipUrl?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

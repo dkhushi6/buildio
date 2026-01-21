@@ -52,6 +52,8 @@ model project{
   id String @id @unique
   name String
   userId String
+    prompt String
+
   user user @relation(fields: [userId], references: [id])
   messages Json
    zipUrl    String? 

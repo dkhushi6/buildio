@@ -9,8 +9,11 @@ import RightSide from "./right-side";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import RightSideInitial from "./right-side-initial";
-
-export function ResizableBar({ projectId }: { projectId: string }) {
+type ResizableProps = {
+  projectId: string;
+  reload: boolean;
+};
+export function ResizableBar({ projectId, reload }: ResizableProps) {
   const [projectMade, setProjectMade] = useState(false);
 
   const [url, setUrl] = useState("");

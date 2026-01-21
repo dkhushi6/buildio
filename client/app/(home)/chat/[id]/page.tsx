@@ -10,6 +10,7 @@ const page = () => {
   const id = params.id as string | undefined;
   const [projectId, setprojectId] = useState("");
   const [userId, setUserId] = useState("");
+  const [reload, setReload] = useState(false);
 
   const { data: session, status } = useSession();
 
@@ -40,6 +41,7 @@ const page = () => {
       console.log("initialid", id);
       console.log("old project");
       const handleReload = async () => {
+        setReload(true);
         const res = await axios.post("http://localhost:8080/api/reload", {
           projectId: id,
           userId,
@@ -52,7 +54,7 @@ const page = () => {
   }, [id, userId]);
   return (
     <div>
-      <ResizableBar projectId={projectId} />
+      <ResizableBar projectId={projectId} reload={reload} />
     </div>
   );
 };

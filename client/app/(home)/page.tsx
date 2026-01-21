@@ -14,21 +14,11 @@ const page = () => {
     }
     console.log("session is", session);
   });
-  // useEffect(() => {
-  //   if (session?.user?.id) {
-  //     const fetchProjects = async () => {
-  //       const res = await axios.post("http://localhost:8080/api/test", {
-  //         userId: session.user?.id,
-  //       });
-  //       console.log("projects are", res.data);
-  //     };
-  //     fetchProjects();
-  //   }
-  // }, [session]);
+
   return (
     <div>
       <LandingPage />
-      {/* <ProjectsList /> */}
+      <ProjectsList />
     </div>
   );
 };

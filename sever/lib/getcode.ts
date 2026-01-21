@@ -287,6 +287,8 @@ export const getcode = async ({
       id: projectId,
       userId,
       name: "new pro",
+      prompt: prompt,
+
       messages: messagesToSave as unknown as Prisma.JsonValue, // ← cast
     },
   });

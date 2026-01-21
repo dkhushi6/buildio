@@ -154,6 +154,7 @@ exports.Prisma.SessionScalarFieldEnum = {
 exports.Prisma.ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  prompt: 'prompt',
   userId: 'userId',
   messages: 'messages',
   zipUrl: 'zipUrl',

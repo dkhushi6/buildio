@@ -1,7 +1,9 @@
 "use client";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { Card } from "../ui/card";
 export interface Project {
   id: string;
   name?: string;
@@ -47,28 +49,33 @@ export default function ProjectsList() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-6">Your Projects</h1>
+      <h1 className="text-2xl font-semibold  text-amber-50 mb-6">
+        Your Projects
+      </h1>
 
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project) => (
-          <div
+          <Card
             key={project.id}
-            className="bg-white rounded-2xl shadow-md p-5 border border-gray-200 hover:shadow-lg transition shadow-sm hover:scale-[1.01]"
+            onClick={() => {
+              redirect(`/chat/${project.id}`);
+            }}
+            className="shadow-md p-5  hover:shadow-lg  transition bg-[#282521] border-[#1B1917] hover:scale-[1.01] text-muted-foreground"
           >
-            <h2 className="text-xl font-medium text-gray-800 mb-2 truncate">
+            <h2 className="text-xl  font-medium mb-2 truncate">
               {project.name || "Untitled Project"}
             </h2>
 
-            <p className="text-sm text-gray-500">
+            <p className="text-sm">
               Project ID: <span className="font-mono">{project.id}</span>
             </p>
 
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm mt-1">
               Created: {new Date(project.createdAt).toLocaleDateString()}
             </p>
-          </div>
+          </Card>
         ))}
-      </div> */}
+      </div>
     </div>
   );
 }
