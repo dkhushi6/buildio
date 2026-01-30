@@ -6,6 +6,7 @@ import CodeEditor from "../code-editor";
 import RightSideInitial from "./right-side-initial";
 import { Button } from "../ui/button";
 import FileTree, { FileNode } from "./getTree";
+import { getFolderTree } from "@/functions/getFolderTree";
 
 type RightSideProps = {
   url: string;
@@ -14,7 +15,7 @@ type RightSideProps = {
 };
 
 const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
-  const [tree, setTree] = useState<FileNode>();
+  const [tree, setTree] = useState<FileNode | undefined>();
   const [code, setCode] = useState("");
   const [viewMode, setViewMode] = useState<"code" | "preview">("preview");
 
@@ -22,17 +23,7 @@ const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
     console.log("projectmade", projectMade);
     if (!sandboxId) return console.log("no id");
     if (projectMade) {
-      const getFolderTree = async () => {
-        try {
-          const res = await axios.post("http://localhost:8080/api/tree", {
-            sandboxId,
-          });
-          if (res?.data?.tree) setTree(res.data.tree);
-        } catch (err) {
-          console.log(err);
-        }
-      };
-      getFolderTree();
+      getFolderTree({ setTree, sandboxId });
     }
   }, [sandboxId, projectMade]);
 
@@ -63,7 +54,6 @@ const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
           </div>
         </div>
 
-        {/* Toggle Buttons - Enhanced with original theme */}
         <div className="flex gap-2 bg-[#0F0E0D] pz-1.5 rounded-xl border border-[#41413F]/50 shadow-inner">
           <button
             onClick={() => setViewMode("code")}
@@ -98,19 +88,16 @@ const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
         {viewMode === "code" ? (
           tree ? (
             <div className="flex h-full">
-              {/* File Tree Sidebar - Enhanced with original theme */}
               <div className="w-80 bg-[#1C1C1C] border-r border-[#41413F]/50 overflow-auto">
                 <div className="p-3">
                   <FileTree treeData={tree} onFileClick={onFileClick} />
                 </div>
               </div>
 
-              {/* Code Editor - Enhanced */}
               <div className="flex-1 bg-[#1C1C1C] overflow-auto">
                 <div className="h-full p-4">
                   {code ? (

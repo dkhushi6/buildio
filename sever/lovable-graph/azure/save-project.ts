@@ -57,25 +57,22 @@ if (!accountName || !accountKey) {
 //A file stored in the cloud as raw binary data
 const sharedKeyCredential = new StorageSharedKeyCredential(
   accountName,
-  accountKey
+  accountKey,
 );
 const blobServiceClient = new BlobServiceClient(
   `https://${accountName}.blob.core.windows.net`,
-  sharedKeyCredential
+  sharedKeyCredential,
 );
-// const blobService = BlobServiceClient.fromConnectionString(
-//   process.env.AZURE_STORAGE_CONNECTION_STRING!
-// );
+
 //AdmZip()---
 //Collect all files from sandbox--> Add each file to ZIP-->Convert ZIP into a buffer-->  Upload buffer to Azure blob storage
 const containerName = "khushi-projects"; // create in Azure portal
 const containerClient = blobServiceClient.getContainerClient(containerName);
 
 export async function SaveProjectsAzur(
-  //   sandbox: Sandbox,
   sandboxId: string,
   projectId: string,
-  userId: string
+  userId: string,
 ) {
   console.log("inside azure code");
   const zip = new AdmZip();

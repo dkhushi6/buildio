@@ -1,7 +1,6 @@
 import Sandbox from "@e2b/code-interpreter";
 import { Router } from "express";
-import path from "path";
-import { file } from "zod";
+
 import { getFolderTree } from "../../lib/getFolderTree";
 const router = Router();
 router.post("/tree", async (req, res) => {

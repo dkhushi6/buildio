@@ -12,14 +12,13 @@ import { createServer } from "node:http";
 import { getcode } from "../lib/getcode";
 import getReloadMsgRoutes from "./routes/reload-project";
 import testRoute from "./routes/test";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN_URL,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -27,11 +26,10 @@ const io = new Server(server, {
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN_URL,
     credentials: true,
-  })
+  }),
 );
-// Middleware
 app.use(express.json());
 
 // Routes
@@ -43,14 +41,6 @@ app.use("/api", getUserProjectRoutes);
 app.use("/api", testRoute);
 
 io.on("connection", (socket) => {
-  // console.log("a user connected");
-  // const token = socket.handshake.auth.token;
-  // try {
-  //   const decoded = jwt.verify(token, process.env.AUTH_SECRET);
-  //   console.log(" Token verified:", decoded);
-  // } catch {
-  //   console.error("Error verifing token");
-  // }
   socket.data.projectId = null;
   socket.data.userId = null;
   socket.data.prompt = null;
@@ -66,9 +56,7 @@ io.on("connection", (socket) => {
   });
   socket.on("getcode", async (prompt) => {
     if (!prompt) return console.log("❌ No prompt received");
-    socket.data.prompt = prompt; // store it
-
-    // Now check if everything exists
+    socket.data.prompt = prompt;
     if (!socket.data.projectId || !socket.data.userId) {
       console.log("⚠ Missing projectId or userId, waiting...");
       return;
@@ -83,7 +71,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-// Health check route (optional)
 app.get("/", (req, res) => {
   res.send("🚀 Lovable E2B Clone Backend health check successfull...");
 });
@@ -92,7 +79,7 @@ app.get("/test", (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

@@ -19,7 +19,3 @@ export const plan_statusState = z
   .default("idle");
 
 export type llmOutputStateType = z.infer<typeof llmOutputState>;
-// export type projectNameState = z.infer<typeof projectName>;
-
-// export type SingleStep = z.infer<typeof stepSchema>;
-// export type projectStepsState = z.infer<typeof steps>;

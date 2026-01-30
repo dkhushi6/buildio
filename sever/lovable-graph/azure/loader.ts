@@ -10,14 +10,12 @@ const containerName = "khushi-projects"; // same container
 const sharedCred = new StorageSharedKeyCredential(accountName, accountKey);
 const blobServiceClient = new BlobServiceClient(
   `https://${accountName}.blob.core.windows.net`,
-  sharedCred
+  sharedCred,
 );
 
 const containerClient = blobServiceClient.getContainerClient(containerName);
 
-// ---------------------------------------------------
-//  LOAD PROJECT FILES FOR GIVEN USER & PROJECT
-// ---------------------------------------------------
+//load project files
 export async function LoadProjectFromAzure(projectId: string, userId: string) {
   const prefix = `${projectId}.zip`; // because you are storing 1 ZIP per project
 

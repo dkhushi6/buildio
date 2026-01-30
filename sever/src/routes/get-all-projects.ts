@@ -8,7 +8,6 @@ router.post("/user-project", async (req, res) => {
     return res.json({ message: "no user id found" });
   }
   const user = await prisma.user.findFirst({ where: { id: userId } });
-  console.log("user is", user);
   const userWithProjects = await prisma.user.findUnique({
     where: { id: userId },
     include: { project: true },

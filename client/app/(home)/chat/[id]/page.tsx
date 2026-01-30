@@ -5,13 +5,20 @@ import React, { useEffect, useState } from "react";
 import { ObjectId } from "bson";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+type ReloadProjectItem = {
+  message: string;
+  project: any;
+  url: string;
+};
 const page = () => {
   const params = useParams();
   const id = params.id as string | undefined;
   const [projectId, setprojectId] = useState("");
   const [userId, setUserId] = useState("");
   const [reload, setReload] = useState(false);
-
+  const [reloadProject, setReloadProject] = useState<
+    ReloadProjectItem | undefined
+  >();
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -46,6 +53,8 @@ const page = () => {
           projectId: id,
           userId,
         });
+
+        setReloadProject(res.data);
         console.log("project", res.data);
         console.log("messages", res.data.project.messages);
       };
@@ -54,7 +63,11 @@ const page = () => {
   }, [id, userId]);
   return (
     <div>
-      <ResizableBar projectId={projectId} reload={reload} />
+      <ResizableBar
+        projectId={projectId}
+        reload={reload}
+        reloadProject={reloadProject}
+      />
     </div>
   );
 };

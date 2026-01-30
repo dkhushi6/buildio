@@ -1,13 +1,8 @@
 import { google } from "@ai-sdk/google";
-import { generateObject, streamText, tool } from "ai";
+import { streamText } from "ai";
 import { Router } from "express";
 import { systemPrompt } from "../../lovable-graph/prompts/systemPrompt";
-import { createFile } from "../../lib/tools";
-import { runCommand } from "../../lib/tools";
 
-import { replaceFile } from "../../lib/tools";
-
-import z from "zod";
 import path from "path";
 
 import Sandbox from "@e2b/code-interpreter";
@@ -15,7 +10,7 @@ const router = Router();
 
 export const AppendBaseApp = async (
   sandbox,
-  { path: stepPath, content: stepContent }
+  { path: stepPath, content: stepContent },
 ) => {
   const filePath = stepPath;
   const dir = path.dirname(filePath);

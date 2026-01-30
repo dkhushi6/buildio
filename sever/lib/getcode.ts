@@ -165,7 +165,7 @@ export const getcode = async ({
     const nextCall = toolCalls.find((tc) => {
       const id = tc.id;
       return !state.messages.some(
-        (m) => m instanceof ToolMessage && m.tool_call_id === id
+        (m) => m instanceof ToolMessage && m.tool_call_id === id,
       );
     });
 
@@ -237,7 +237,7 @@ export const getcode = async ({
     const nextCall = (lastAI.tool_calls ?? []).find((tc) => {
       const id = tc.id;
       return !state.messages.some(
-        (m) => m instanceof ToolMessage && m.tool_call_id === id
+        (m) => m instanceof ToolMessage && m.tool_call_id === id,
       );
     });
 

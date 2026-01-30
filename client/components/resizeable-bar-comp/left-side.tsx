@@ -49,6 +49,7 @@ const LeftSide = ({
     sendPrompt();
     setPrompt("");
   };
+
   useEffect(() => {
     const initialPrompt = localStorage.getItem("prompt");
     if (initialPrompt) {
@@ -90,7 +91,7 @@ const LeftSide = ({
       socket.on("stepsDone", () => {
         addSocketMsg(
           "system",
-          `$ planned all the steps needed for making the app`
+          `$ planned all the steps needed for making the app`,
         );
       });
       socket.on("planningStart", () => {
