@@ -9,9 +9,12 @@ export const getFolderTree = async ({
   sandboxId,
 }: getFolderTreePropsTypes) => {
   try {
-    const res = await axios.post("http://localhost:8080/api/tree", {
-      sandboxId,
-    });
+    const res = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/tree`,
+      {
+        sandboxId,
+      },
+    );
     if (res?.data?.tree) setTree(res.data.tree);
   } catch (err) {
     console.log(err);

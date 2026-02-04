@@ -1,16 +1,10 @@
 "use client";
-import axios from "axios";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Card } from "../ui/card";
-export interface Project {
-  id: string;
-  name?: string;
-  userId: string;
-  zipUrl?: string;
-  createdAt: string;
-}
+import { project } from "@/lib/generated/prisma";
+import { fetchProjects } from "@/functions/fetch-all-user-projects";
 
 export default function ProjectsList() {
   const [userId, setUserId] = useState("");
@@ -26,17 +20,10 @@ export default function ProjectsList() {
     }
   }, [status]);
   console.log("userid", userId);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<project[]>([]);
   useEffect(() => {
     if (userId) {
-      const fetchProjects = async () => {
-        const res = await axios.post("http://localhost:8080/api/test", {
-          userId,
-        });
-        console.log("projects are", res.data);
-        setProjects(res.data.projects);
-      };
-      fetchProjects();
+      fetchProjects({ userId, setProjects });
     }
   }, [session, projects]);
   if (!projects || projects.length === 0) {

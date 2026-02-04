@@ -3,8 +3,8 @@ import { ResizableBar } from "@/components/resizeable-bar-comp/resizeable-bar";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { ObjectId } from "bson";
-import axios from "axios";
 import { useSession } from "next-auth/react";
+import { handleReload } from "@/functions/handle-reload";
 type ReloadProjectItem = {
   message: string;
   project: any;
@@ -48,18 +48,7 @@ const page = () => {
     if (id && id !== "new" && userId) {
       console.log("initialid", id);
       console.log("old project");
-      const handleReload = async () => {
-        setReload(true);
-        const res = await axios.post("http://localhost:8080/api/reload", {
-          projectId: id,
-          userId,
-        });
-
-        setReloadProject(res.data);
-        console.log("project", res.data);
-        console.log("messages", res.data.project.messages);
-      };
-      handleReload();
+      handleReload({ setReload, id, userId, setReloadProject });
     }
   }, [id, userId]);
   return (

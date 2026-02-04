@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Code, Eye, LoaderCircle, FileCode, Layers } from "lucide-react";
 import CodeEditor from "../code-editor";
 import FileTree, { FileNode } from "./getTree";
 import { getFolderTree } from "@/functions/getFolderTree";
+import { onFileClick } from "@/functions/onFileClick";
 
 type RightSideProps = {
   url: string;
@@ -25,20 +25,6 @@ const RightSide = ({ url, projectMade, sandboxId, reload }: RightSideProps) => {
       getFolderTree({ setTree, sandboxId });
     }
   }, [sandboxId, projectMade]);
-
-  const onFileClick = async (filePath: string) => {
-    if (!sandboxId || !filePath) return console.log("Missing id or filepath");
-    try {
-      const res = await axios.post("http://localhost:8080/api/getfile", {
-        sandboxId,
-        filePath,
-      });
-      console.log("code", res.data.file);
-      setCode(res.data.file || "");
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   return (
     <div className="h-screen flex flex-col bg-[#1C1C1C]">
@@ -92,7 +78,16 @@ const RightSide = ({ url, projectMade, sandboxId, reload }: RightSideProps) => {
             <div className="flex h-full">
               <div className="w-80 bg-[#1C1C1C] border-r border-[#41413F]/50 overflow-auto">
                 <div className="p-3">
-                  <FileTree treeData={tree} onFileClick={onFileClick} />
+                  <FileTree
+                    treeData={tree}
+                    onFileClick={(filePath: string) =>
+                      onFileClick({
+                        filePath,
+                        sandboxId,
+                        setCode,
+                      })
+                    }
+                  />
                 </div>
               </div>
 
