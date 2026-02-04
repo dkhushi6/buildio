@@ -17,9 +17,14 @@ router.post("/reload", async (req, res) => {
     return res.json({ messages: "no project for this id found" });
   }
   const project = await ReloadOldProject({ projectId, userId });
-  const { url } = project;
+  const { url, sandboxId } = project;
 
-  return res.json({ message: "project found", project: oldProject, url });
+  return res.json({
+    message: "project found",
+    project: oldProject,
+    url,
+    sandboxId,
+  });
 });
 
 export default router;

@@ -9,12 +9,19 @@ type ChatMessage = {
   sender: "user" | "system";
   text: string;
 };
-
+type ReloadProjectItem = {
+  message: string;
+  project: any;
+  url: string;
+  sandboxId: string;
+};
 type LeftSideProps = {
   setProjectMade: React.Dispatch<React.SetStateAction<boolean>>;
   setUrl: React.Dispatch<React.SetStateAction<string>>;
   setSandboxId: React.Dispatch<React.SetStateAction<string>>;
   projectId: string;
+  reload: boolean;
+  reloadProject: ReloadProjectItem | undefined;
 };
 
 const LeftSide = ({
@@ -22,6 +29,8 @@ const LeftSide = ({
   setUrl,
   setSandboxId,
   projectId,
+  reload,
+  reloadProject,
 }: LeftSideProps) => {
   const { data: session } = useSession();
   if (!session?.user) {
@@ -49,7 +58,13 @@ const LeftSide = ({
     sendPrompt();
     setPrompt("");
   };
-
+  // useEffect(() => {
+  //   if (reload) {
+  //     console.log("prompt is ,", reloadProject?.project.prompt);
+  //     setPrompt(reloadProject?.project.prompt);
+  //     setMessages((prev) => [...prev, reloadProject?.project.prompt]);
+  //   }
+  // }, [reload]);
   useEffect(() => {
     const initialPrompt = localStorage.getItem("prompt");
     if (initialPrompt) {
@@ -67,7 +82,6 @@ const LeftSide = ({
         console.log("no projectId");
       }
       const userId = session?.user?.id;
-      // console.log("token is", token);
       const socket = io("http://localhost:8080");
       socket.emit("projectId", projectId);
       socket.emit("userId", userId);

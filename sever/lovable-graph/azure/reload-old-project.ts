@@ -12,6 +12,7 @@ export async function ReloadOldProject({
   const sandbox = await Sandbox.create("9ltypddtnj1uhv1iv3u1");
   console.log("baseApp created");
   const { sandboxId } = sandbox;
+
   const host = sandbox.getHost(5173);
   const url = host;
   console.log("newSandbox url");

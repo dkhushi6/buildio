@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Code, Eye, LoaderCircle, FileCode, Layers } from "lucide-react";
 import CodeEditor from "../code-editor";
-import RightSideInitial from "./right-side-initial";
-import { Button } from "../ui/button";
 import FileTree, { FileNode } from "./getTree";
 import { getFolderTree } from "@/functions/getFolderTree";
 
@@ -12,9 +10,10 @@ type RightSideProps = {
   url: string;
   sandboxId: string;
   projectMade: boolean;
+  reload: boolean;
 };
 
-const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
+const RightSide = ({ url, projectMade, sandboxId, reload }: RightSideProps) => {
   const [tree, setTree] = useState<FileNode | undefined>();
   const [code, setCode] = useState("");
   const [viewMode, setViewMode] = useState<"code" | "preview">("preview");
@@ -22,7 +21,7 @@ const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
   useEffect(() => {
     console.log("projectmade", projectMade);
     if (!sandboxId) return console.log("no id");
-    if (projectMade) {
+    if (projectMade || reload) {
       getFolderTree({ setTree, sandboxId });
     }
   }, [sandboxId, projectMade]);
@@ -43,7 +42,6 @@ const RightSide = ({ url, projectMade, sandboxId }: RightSideProps) => {
 
   return (
     <div className="h-screen flex flex-col bg-[#1C1C1C]">
-      {/* Enhanced Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[#41413F]/50 bg-[#1B1917] sticky top-0 z-10 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-[#402F1D]/40 rounded-lg border border-[#523613]/30">

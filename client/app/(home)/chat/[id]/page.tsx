@@ -9,6 +9,7 @@ type ReloadProjectItem = {
   message: string;
   project: any;
   url: string;
+  sandboxId: string;
 };
 const page = () => {
   const params = useParams();

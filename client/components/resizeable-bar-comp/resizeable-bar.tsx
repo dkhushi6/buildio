@@ -13,6 +13,7 @@ type ReloadProjectItem = {
   message: string;
   project: any;
   url: string;
+  sandboxId: string;
 };
 type ResizableProps = {
   projectId: string;
@@ -32,8 +33,16 @@ export function ResizableBar({
     if (reload && reloadProject) {
       console.log("the reload project is ", reloadProject);
       setUrl(`https://${reloadProject?.url}`);
+      setSandboxId(reloadProject?.sandboxId);
     }
   }, [reload, reloadProject]);
+  if (reload && !reloadProject) {
+    return (
+      <div className="text-4xl flex justify-center items-center">
+        Reloading project wait ...
+      </div>
+    );
+  }
   return (
     <ResizablePanelGroup direction="horizontal" className="  ">
       <ResizablePanel defaultSize={33} minSize={20} maxSize={50}>
@@ -42,12 +51,15 @@ export function ResizableBar({
           setProjectMade={setProjectMade}
           setUrl={setUrl}
           setSandboxId={setSandboxId}
+          reload={reload}
+          reloadProject={reloadProject}
         />
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={67}>
         {url ? (
           <RightSide
+            reload={reload}
             sandboxId={sandboxId}
             projectMade={projectMade}
             url={url}
