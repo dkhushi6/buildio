@@ -1,6 +1,6 @@
 "use client";
 import { ResizableBar } from "@/components/resizeable-bar-comp/resizeable-bar";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { ObjectId } from "bson";
 import { useSession } from "next-auth/react";
@@ -21,15 +21,13 @@ const page = () => {
     ReloadProjectItem | undefined
   >();
   const { data: session, status } = useSession();
-
+  if (status === "unauthenticated") {
+    redirect("/login");
+  }
   useEffect(() => {
-    if (status === "unauthenticated") {
-      console.log("login first");
-    } else {
-      const uid = session?.user?.id as string;
-      setUserId(uid);
-    }
-  }, [status]);
+    const uid = session?.user?.id as string;
+    setUserId(uid);
+  }, []);
   console.log("userid", userId);
   useEffect(() => {
     if (id === "new" || !id) {
