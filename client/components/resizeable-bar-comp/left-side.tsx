@@ -111,6 +111,10 @@ const LeftSide = ({
       socket.on("planningStart", () => {
         addSocketMsg("system", `$  Planning Start for app prep`);
       });
+      socket.on("project-name", (name) => {
+        addSocketMsg("system", `$ Project name: ${name}`);
+      });
+
       socket.on("replaceFile", (path) => {
         addSocketMsg("system", `$ File replaced: ${path}`);
       });

@@ -38,8 +38,22 @@ export function ResizableBar({
   }, [reload, reloadProject]);
   if (reload && !reloadProject) {
     return (
-      <div className="text-4xl flex justify-center items-center">
-        Reloading project wait ...
+      <div className="flex flex-col items-center justify-center h-full w-full h-screen ">
+        <div className="flex flex-col items-center gap-4 max-w-md text-center">
+          <div className="relative">
+            <div className="h-16 w-16 rounded-full border-4 border-muted"></div>
+            <div className="absolute top-0 h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl text-muted-foreground font-semibold tracking-tight">
+              Reloading Project
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Please wait while we restore your workspace...
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

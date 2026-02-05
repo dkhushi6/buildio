@@ -53,10 +53,12 @@ export const getcode = async ({
       return;
     }
     const messages = [new SystemMessage(namePrompt), new HumanMessage(prompt)];
-
     const res = await namellm.invoke(messages);
+
     const name = res.content;
-    socket.emit("project name", name);
+    console.log("project name is", name);
+
+    socket.emit("project-name", name);
 
     return { projectName: name };
   };
@@ -94,23 +96,7 @@ export const getcode = async ({
         new HumanMessage(stepsString),
       ];
     }
-    // const oldProject = await prisma.project.findFirst({
-    //   where: { id: projectId, userId },
-    // });
-    // if (oldProject) {
-    //   console.log("project already exist");
-    //   return;
-    // } else {
-    //   await prisma.project.create({
-    //     data: {
-    //       id: projectId,
-    //       userId,
-    //       name: "newProject",
-    //       messages: JSON.parse(JSON.stringify(messages.map((m) => m.toJSON()))),
-    //     },
-    //   });
-    // }
-    // console.log("the messages array in llm is ", messages);
+
     try {
       console.log("inside try block of code");
       const aiMsg: any = await codeAgent.invoke(messages);
@@ -120,20 +106,6 @@ export const getcode = async ({
       });
 
       console.log("aiMsg content", aiMsg.content[0].type);
-      // await prisma.project.update({
-      //   where: { id: projectId, userId },
-      //   data: {
-      //     messages: JSON.parse(
-      //       JSON.stringify([
-      //         ...messages.map((m) => m.toJSON()),
-      //         aiMsg.toJSON ? aiMsg.toJSON() : aiMsg,
-      //       ])
-      //     ),
-      //   },
-      // });
-
-      // console.log("aiMsg is", aiMsg);
-      // console.log("the messages array is ", messages);
       return {
         messages: [...messages, aiMsg],
         llmCalls: (state.llmCalls ?? 0) + 1,
@@ -252,7 +224,7 @@ export const getcode = async ({
     .addNode("codeGenNode", codeGenNode)
     .addNode("toolNode", toolNode)
     .addEdge(START, "nameNode")
-    .addEdge(START, "plannerNode")
+    .addEdge("nameNode", "plannerNode")
     .addEdge("plannerNode", "codeGenNode")
     .addConditionalEdges("codeGenNode", shouldContinue, [
       "toolNode",
@@ -286,14 +258,13 @@ export const getcode = async ({
     data: {
       id: projectId,
       userId,
-      name: "new pro",
+      name: result.projectName,
       prompt: prompt,
 
-      messages: messagesToSave as unknown as Prisma.JsonValue, // ← cast
+      messages: messagesToSave as unknown as Prisma.JsonValue,
     },
   });
 
-  // await buildAgent(prompt, sandbox, socket, model);
   socket.emit("done");
 
   SaveProjectsAzur(sandboxId, projectId, userId);
