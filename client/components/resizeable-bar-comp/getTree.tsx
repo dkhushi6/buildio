@@ -30,7 +30,7 @@ export interface FileNode {
 
 interface FileTreeProps {
   treeData: FileNode; // Root node from API
-  onFileClick?: (filePath: string) => void; // 👈 add prop
+  onFileClick?: (filePath: string) => void;
 }
 
 // Helper to map folder tree into headless-tree format
@@ -135,7 +135,7 @@ export default function FileTree({ treeData, onFileClick }: FileTreeProps) {
                           ?.name.split(".")
                           .pop()
                           ?.toLowerCase(),
-                        "text-muted-foreground pointer-events-none size-4"
+                        "text-muted-foreground pointer-events-none size-4",
                       )}
                     {item.getItemName()}
                   </span>
