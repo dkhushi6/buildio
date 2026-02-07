@@ -21,11 +21,11 @@ export const createFile = (sandbox: Sandbox, socket) => {
         path: z
           .string()
           .describe(
-            "Relative path to the file including filename and extension"
+            "Relative path to the file including filename and extension",
           ),
         content: z.string().describe("Content to write into the file"),
       }),
-    }
+    },
   );
 };
 
@@ -46,11 +46,11 @@ export const replaceFile = (sandbox: Sandbox, socket) => {
         path: z
           .string()
           .describe(
-            "Relative path to the file including filename and extension"
+            "Relative path to the file including filename and extension",
           ),
         content: z.string().describe("Content to write into the file"),
       }),
-    }
+    },
   );
 };
 
@@ -82,6 +82,6 @@ export const runCommand = (sandbox: Sandbox, socket) => {
       schema: z.object({
         command: z.string(),
       }),
-    }
+    },
   );
 };
