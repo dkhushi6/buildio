@@ -82,7 +82,7 @@ const LeftSide = ({
         console.log("no projectId");
       }
       const userId = session?.user?.id;
-      const socket = io("http://localhost:8080");
+      const socket = io(process.env.NEXT_PUBLIC_API_URL);
       socket.emit("projectId", projectId);
       socket.emit("userId", userId);
       socket.emit("getcode", prompt);
