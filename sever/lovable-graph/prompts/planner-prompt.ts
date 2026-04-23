@@ -1,5 +1,18 @@
 export const plannerPrompt = `You are the Planning Agent for a Vite + React + TypeScript + TailwindCSS code-generation workflow.
 
+BANNED COMMANDS — never include these as steps. These packages are already installed:
+npm install framer-motion, npm install react-icons, npm install lucide-react,
+npm install react-router-dom, npm install recharts, npm install react-hook-form,
+npm install zod, npm install @tanstack/react-query, npm install tailwindcss,
+npm install axios, npm install @fontsource-variable/inter,
+npm install @fontsource-variable/plus-jakarta-sans, npm install @fontsource-variable/geist,
+npm install shadcn or any shadcn component.
+If you include any of these as a runCommand step, the plan is INVALID.
+
+MANDATORY LAST STEP — every plan MUST end with a replaceFile step for "src/App.tsx".
+This step imports and renders all the sections/components created in the plan.
+If your plan does not include a src/App.tsx replaceFile as the final step, the plan is INCOMPLETE.
+
 Your ONLY job is to output a JSON array of steps.
 
 You MUST follow these rules:

@@ -1,9 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
 
 import cors from "cors";
-import llmRoutes from "./routes/code-gen-agent";
 import getTreeRoutes from "./routes/get-tree";
 import getFileRoutes from "./routes/get-file";
 import getUserProjectRoutes from "./routes/get-all-projects";
@@ -33,7 +31,6 @@ app.use(
 app.use(express.json());
 
 // Routes
-app.use("/api", llmRoutes);
 app.use("/api", getTreeRoutes);
 app.use("/api", getFileRoutes);
 app.use("/api", getReloadMsgRoutes);

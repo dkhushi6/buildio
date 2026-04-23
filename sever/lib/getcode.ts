@@ -13,7 +13,7 @@ import { newSystemPrompt } from "../lovable-graph/prompts/new-prompt";
 import { StateGraph, START, END } from "@langchain/langgraph";
 import { Socket } from "socket.io";
 import { prisma } from "../lib/prisma";
-import { Prisma } from "../lib/generated/prisma";
+import { Prisma } from "./generated/prisma";
 import { SaveProjectsAzur } from "../lovable-graph/azure/save-project";
 type GetCodePropsTypes = {
   prompt: string;
@@ -28,7 +28,7 @@ export const getcode = async ({
   userId,
   socket,
 }: GetCodePropsTypes) => {
-  const sandbox = await Sandbox.create("9ltypddtnj1uhv1iv3u1");
+  const sandbox = await Sandbox.create("base-app");
   console.log("sandbox id is", sandbox.sandboxId);
   const { sandboxId } = sandbox;
   console.log("promptis ", prompt);
@@ -254,6 +254,8 @@ export const getcode = async ({
     return;
   }
   const messagesToSave = result.messages.map((m) => m.toJSON());
+
+  const cleanedMessages = JSON.parse(JSON.stringify(messagesToSave));
   await prisma.project.create({
     data: {
       id: projectId,
@@ -261,7 +263,7 @@ export const getcode = async ({
       name: result.projectName,
       prompt: prompt,
 
-      messages: messagesToSave as unknown as Prisma.JsonValue,
+      messages: cleanedMessages as Prisma.InputJsonValue,
     },
   });
 
