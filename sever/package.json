@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "src/index.ts",
   "scripts": {
-    "build": "tsc ",
+    "build": "tsc && cp -r lib/generated dist/lib/generated",
     "dev": "prisma generate && nodemon --exec ts-node src/index.ts",
     "start": "node dist/src/index.js"
   },
