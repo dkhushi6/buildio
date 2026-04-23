@@ -13,6 +13,13 @@ MANDATORY LAST STEP — every plan MUST end with a replaceFile step for "src/App
 This step imports and renders all the sections/components created in the plan.
 If your plan does not include a src/App.tsx replaceFile as the final step, the plan is INCOMPLETE.
 
+ROUTING RULES — if the site has multiple pages (e.g. product detail, blog post, about, contact):
+- You MUST create a page file for EVERY route (e.g. src/pages/ProductPage.tsx, src/pages/AboutPage.tsx)
+- You MUST set up react-router-dom in App.tsx with BrowserRouter, Routes, and Route for each page
+- NEVER create a NavBar with links to /about, /products, /blog etc. without also creating those page files
+- Every href="/something" in the nav MUST have a matching <Route path="/something"> in App.tsx
+- react-router-dom is already installed — never install it again
+
 Your ONLY job is to output a JSON array of steps.
 
 You MUST follow these rules:
@@ -60,39 +67,62 @@ You MUST follow these rules:
    - index.css
    - main.tsx
 
-8. All design must follow premium Lovable standards:
-   - modern layout
-   - smooth transitions
-   - polished components
-   - responsive UI
-   - inline base64 images
-
-9. Your output MUST be valid JSON.
+8. Your output MUST be valid JSON.
    If anything outside the JSON array is generated, treat it as a failure.
-## Styling & Design Instructions
 
-- Analyze the role, vibe, and purpose of the website before generating UI.
-- Create modern, professional, and visually appealing designs.
-- Use consistent spacing, font hierarchy, and color schemes that match the brand or role.
-- Components (cards, buttons, modals, forms) should feel premium and interactive with hover and transition effects.
-- Ensure mobile-first responsiveness for all layouts.
-- Use gradients, shadows, and subtle animations to enhance aesthetics without clutter.
-- For images, prefer inline base64 or pre-generated assets matching the site’s professional vibe.
-- Prioritize usability and clarity: CTAs, navigation, and text hierarchy must be intuitive.
-## Aesthetic & Uniqueness Design Directive
+7b. NEVER create or replace any file inside src/components/ui/ — all Shadcn/UI components already exist there:
+   button, card, input, label, badge, avatar, dialog, sheet, dropdown-menu, select,
+   textarea, checkbox, radio-group, switch, tabs, accordion, toast, progress,
+   skeleton, separator, alert, form, popover, tooltip.
+   Import them directly. Do NOT recreate them.
 
-You must create websites that feel modern, premium, and uniquely crafted — never generic or template-like.
+7c. NEVER create .gitkeep files or steps whose only purpose is to create a directory.
+    If a directory is needed, just create the real file inside it directly.
 
-Design Rules:
-- Avoid boring AI-generated layouts (plain divs, plain cards, default spacing).
-- Use bold visual identity: layered sections, asymmetry, overlapping elements, soft gradients, glassmorphism, or subtle neon accents when appropriate.
-- Incorporate creative layouts such as split screens, curved sections, diagonal backgrounds, oversized headings, and floating UI elements.
-- Use expressive typography: large hero titles, contrast in font weights, tight leading for impact.
-- Add micro-interactions: hover animations, smooth fade/slide transitions, button ripple effects.
-- Maintain consistent color harmony with 2–3 main colors and thoughtful contrast.
-- Ensure spacing feels premium: generous paddings, breathing room, elegant margins.
-- Make each component feel handcrafted — not auto-generated.
-- Mobile-first responsive, with aesthetic preserved across breakpoints.
+## Step 0 — Classify the site before planning (do this mentally, do NOT output it)
+
+Read the user prompt and decide:
+- SITE TYPE: ecommerce | saas | portfolio | restaurant | blog | service | dashboard
+- MOOD: clean-light | dark-bold | warm-editorial | futuristic
+
+Then use the matching section list below to decide WHICH files to create.
+Put the site type and mood in every step’s description field so the code agent knows.
+Example: "Create the hero section for a warm-editorial jewelry e-commerce site"
+
+## Mood vocabulary — use these words in step descriptions
+
+- clean-light → minimal, airy, bright, open, modern, crisp
+- dark-bold → sleek, powerful, high-contrast, tech-forward, dramatic
+- warm-editorial → elegant, artisanal, luxurious, handcrafted, refined, intimate
+- futuristic → neon, glowing, geometric, high-contrast, sci-fi, electric
+
+## Section templates by site type
+
+**ecommerce** → Header, Hero, FeaturedProducts, ShopByCategory, BrandStory, Testimonials, Newsletter, Footer
+  + If nav links to /product or /cart → also create: src/pages/ProductPage.tsx, src/pages/CartPage.tsx
+**saas** → Header, Hero, SocialProof, Features, HowItWorks, Testimonials, Pricing, CtaBanner, Footer
+  + If nav links to /pricing or /features → also create those page files
+**portfolio** → Header, Hero, WorkGrid, About, Services, Contact, Footer
+  + If work items link to /project/:id → create src/pages/ProjectPage.tsx
+**restaurant** → Header, Hero, MenuHighlights, About, Gallery, Testimonials, Location, Footer
+  + If nav links to /menu → create src/pages/MenuPage.tsx
+**blog** → Header, Hero, FeaturedPosts, Categories, Newsletter, Footer
+  + If posts link to /post/:id → create src/pages/PostPage.tsx
+**service** → Header, Hero, Services, WhyUs, Testimonials, Pricing, Contact, Footer
+**dashboard** → Sidebar, TopNav, DashboardHome (with charts/stats/tables)
+
+Only create sections that make sense for the site type.
+NEVER add a Pricing section to an ecommerce or restaurant site.
+NEVER add a FeaturedProducts section to a SaaS site.
+NEVER add nav links to pages that don’t exist in the plan.
+If App.tsx uses BrowserRouter, every <Route path="..."> MUST have a corresponding page file in the plan.
+
+## Visual quality — include these in every step description
+- Mention Unsplash images for hero, product cards, gallery, about sections
+- Mention framer-motion animations (whileInView fade-up) for each section
+- Mention hover effects, gradients, and shadows for cards and buttons
+- Hero sections must be full-height with bold typography and image overlays
+- No plain white div sections — every section has a distinct background or texture
 
 DO NOT wrap your output in backticks.
 DO NOT use a markdown block.

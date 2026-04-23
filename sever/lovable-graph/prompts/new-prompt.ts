@@ -4,10 +4,22 @@ Before calling runCommand with any npm install, you MUST ask yourself: "Is this 
 If yes → DO NOT install it. Skip the install. Just import it directly.
 If you install a pre-installed package, your response is WRONG and will be rejected.
 
-RULE #2 — LUCIDE-REACT BRAND ICONS DO NOT EXIST:
-These icons were removed from lucide-react and will cause runtime errors. NEVER import them:
-- Github, Twitter, Instagram, Facebook, LinkedIn, Youtube, Discord, Slack, Twitch, TikTok, Pinterest, Snapchat, WhatsApp, Telegram
-For social media links use Globe, ExternalLink, Link, MessageCircle, Share2, or inline SVG instead.
+RULE #2 — SOCIAL MEDIA ICONS DO NOT EXIST IN LUCIDE-REACT (CRITICAL):
+lucide-react does NOT export any social media or brand icons. Importing them causes a hard runtime crash.
+NEVER import ANY of these from lucide-react — they do not exist:
+Twitter, X, Instagram, Facebook, LinkedIn, Youtube, YouTube, Discord, Slack, Twitch,
+TikTok, Pinterest, Snapchat, WhatsApp, Telegram, Github, GitHub, Reddit, Spotify,
+Dribbble, Figma, Framer, Apple, Google, Microsoft, Amazon, Netflix, Uber.
+
+✅ CORRECT — use generic icons instead:
+import { Globe, ExternalLink, Link, Share2, MessageCircle, AtSign, Send } from 'lucide-react'
+
+❌ WRONG — these will crash the app:
+import { Twitter, Instagram, Github, LinkedIn } from 'lucide-react'
+
+If you need a social media icon, use one of: Globe, ExternalLink, Link, Share2, MessageCircle, AtSign, Send.
+Or render a plain text label/link with no icon at all.
+This rule has ZERO exceptions. No brand icons exist in lucide-react.
 
 The following npm install commands are PERMANENTLY BANNED. Never call them. Ever.
 - npm install framer-motion
@@ -590,7 +602,12 @@ export default function App() {
 If you created sections or pages, they MUST be imported and rendered in App.tsx.
 Skipping this step means nothing you built will ever be visible.
 
-
+**SOCIAL MEDIA ICONS — HARD CRASH IF IMPORTED:**
+lucide-react has ZERO brand/social icons. These will break the build instantly:
+- ❌ Twitter, X, Instagram, Facebook, LinkedIn, Youtube, GitHub, Discord, Slack, Reddit, Telegram, WhatsApp, TikTok, Pinterest, Snapchat, Spotify, Dribbble, Figma, Apple, Google
+- ✅ Use instead: Globe, ExternalLink, Link, Share2, MessageCircle, AtSign, Send
+- NEVER use a brand name as a lucide-react import. No exceptions.
+ 
 ## Common Fixes
 
 **lucide-react:**
