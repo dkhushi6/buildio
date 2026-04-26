@@ -7,9 +7,10 @@ import {
 import { HumanMessage, SystemMessage, ToolMessage } from "langchain";
 import { namePrompt } from "../lovable-graph/prompts/name-prompt";
 import { plannerPrompt } from "../lovable-graph/prompts/planner-prompt";
+import { prdPrompt } from "../lovable-graph/prompts/prd-prompt";
 import { randomUUID } from "crypto";
 import { isAIMessage } from "@langchain/core/messages";
-import { newSystemPrompt } from "../lovable-graph/prompts/new-prompt";
+import { codePrompt } from "../lovable-graph/prompts/codePrompt";
 import { StateGraph, START, END } from "@langchain/langgraph";
 import { Socket } from "socket.io";
 import { prisma } from "../lib/prisma";
@@ -28,7 +29,7 @@ export const getcode = async ({
   userId,
   socket,
 }: GetCodePropsTypes) => {
-  const sandbox = await Sandbox.create("base-app");
+  const sandbox = await Sandbox.create("base-app", { timeoutMs: 600000 });
   console.log("sandbox id is", sandbox.sandboxId);
   const { sandboxId } = sandbox;
   console.log("promptis ", prompt);
@@ -43,35 +44,48 @@ export const getcode = async ({
   const codellm = await getCodeAgent(sandbox, socket);
   const codeAgent = codellm.codellm;
   const { toolsByName } = codellm;
-  // name node
-  socket.emit("name start");
+  // prd node — runs first, generates a rich project brief
+  const prdNode = async (state: llmOutputStateType) => {
+    socket.emit("prd-start");
+    const msgs = [new SystemMessage(prdPrompt), new HumanMessage(prompt)];
+    const brief = await plannerllm.invoke(msgs);
+    const prd = String(brief.content);
+    console.log("prd brief:", prd);
+    socket.emit("prd", prd);
+    return { prd };
+  };
 
+  // name node — uses prd for richer naming context
   const nameNode = async (state: llmOutputStateType) => {
+    socket.emit("name start");
     if (!prompt) {
       console.log("no prompt");
-
       return;
     }
-    const messages = [new SystemMessage(namePrompt), new HumanMessage(prompt)];
+    const context = state.prd
+      ? `Project Brief:\n${state.prd}\n\nOriginal prompt:\n${prompt}`
+      : prompt;
+    const messages = [new SystemMessage(namePrompt), new HumanMessage(context)];
     const res = await namellm.invoke(messages);
-
     const name = res.content;
     console.log("project name is", name);
-
     socket.emit("project-name", name);
-
     return { projectName: name };
   };
-  socket.emit("planningStart");
-  //planner node
+
+  // planner node — uses prd + prompt so steps are fully informed by the brief
   const plannerNode = async (state: llmOutputStateType) => {
+    socket.emit("planningStart");
     let steps = state.steps;
-    const msgs = [new SystemMessage(plannerPrompt), new HumanMessage(prompt)];
+
+    const msgs = [
+      new SystemMessage(plannerPrompt),
+      new HumanMessage(state.prd),
+    ];
     const res = await plannerllm.invoke(msgs);
     console.log(res.content);
     const aiSteps = res.content;
     socket.emit("stepsDone");
-
     return { steps: [...steps, aiSteps] };
   };
 
@@ -92,7 +106,7 @@ export const getcode = async ({
     if (messages.length === 0) {
       console.log("first llm call");
       messages = [
-        new SystemMessage(newSystemPrompt),
+        new SystemMessage(codePrompt),
         new HumanMessage(stepsString),
       ];
     }
@@ -219,11 +233,13 @@ export const getcode = async ({
   }
 
   const projectGraph = new StateGraph({ state: llmOutputState })
+    .addNode("prdNode", prdNode)
     .addNode("nameNode", nameNode)
     .addNode("plannerNode", plannerNode)
     .addNode("codeGenNode", codeGenNode)
     .addNode("toolNode", toolNode)
-    .addEdge(START, "nameNode")
+    .addEdge(START, "prdNode")
+    .addEdge("prdNode", "nameNode")
     .addEdge("nameNode", "plannerNode")
     .addEdge("plannerNode", "codeGenNode")
     .addConditionalEdges("codeGenNode", shouldContinue, [
@@ -241,6 +257,7 @@ export const getcode = async ({
     messages: [],
     llmCalls: 0,
     status: "pending",
+    prd: "",
   };
 
   const result = await projectGraph.invoke(initialState, {

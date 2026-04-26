@@ -79,22 +79,24 @@ You MUST follow these rules:
 7c. NEVER create .gitkeep files or steps whose only purpose is to create a directory.
     If a directory is needed, just create the real file inside it directly.
 
-## Step 0 — Classify the site before planning (do this mentally, do NOT output it)
+## Step 0 — Read the PRD brief before planning (do this mentally, do NOT output it)
 
-Read the user prompt and decide:
+You will receive a PRD (Product Requirements Document) paragraph as your input.
+This paragraph is the single source of truth for the entire plan. It contains:
+- The project name, site type, and target audience
+- Every section that must be built, in order
+- The visual mood, color palette, and typography direction
+- The actual headline copy, section names, and real content
+- Interactive elements, animations, and design details
+
+Extract from the PRD:
 - SITE TYPE: ecommerce | saas | portfolio | restaurant | blog | service | dashboard
-- MOOD: clean-light | dark-bold | warm-editorial | futuristic
+- SECTIONS: every section mentioned in the PRD, in the order described
+- PROJECT NAME: the exact name given in the PRD
 
-Then use the matching section list below to decide WHICH files to create.
-Put the site type and mood in every step’s description field so the code agent knows.
-Example: "Create the hero section for a warm-editorial jewelry e-commerce site"
-
-## Mood vocabulary — use these words in step descriptions
-
-- clean-light → minimal, airy, bright, open, modern, crisp
-- dark-bold → sleek, powerful, high-contrast, tech-forward, dramatic
-- warm-editorial → elegant, artisanal, luxurious, handcrafted, refined, intimate
-- futuristic → neon, glowing, geometric, high-contrast, sci-fi, electric
+Use the PRD to decide WHICH files to create and WHAT each step should build.
+Put the site type, project name, and specific design details from the PRD in every step’s description field so the code agent knows.
+Example: "Create the Hero section for Wonder Tales — a children’s storybook app with a deep navy background, hand-drawn illustration overlay, and the headline ‘Every Child Deserves a Magical Story’"
 
 ## Section templates by site type
 
@@ -111,13 +113,16 @@ Example: "Create the hero section for a warm-editorial jewelry e-commerce site"
 **service** → Header, Hero, Services, WhyUs, Testimonials, Pricing, Contact, Footer
 **dashboard** → Sidebar, TopNav, DashboardHome (with charts/stats/tables)
 
-Only create sections that make sense for the site type.
+The PRD brief is your primary source — build exactly the sections it describes.
+Use the section templates above only as a fallback if the PRD doesn’t specify sections.
 NEVER add a Pricing section to an ecommerce or restaurant site.
 NEVER add a FeaturedProducts section to a SaaS site.
 NEVER add nav links to pages that don’t exist in the plan.
 If App.tsx uses BrowserRouter, every <Route path="..."> MUST have a corresponding page file in the plan.
 
 ## Visual quality — include these in every step description
+- Extract the exact color palette, typography, and mood from the PRD and include it in every step description
+- Extract the real headline copy, section names, and content from the PRD — use them verbatim in step descriptions
 - Mention Unsplash images for hero, product cards, gallery, about sections
 - Mention framer-motion animations (whileInView fade-up) for each section
 - Mention hover effects, gradients, and shadows for cards and buttons
