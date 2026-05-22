@@ -14,12 +14,20 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
+
+const socketCorsOptions = {
+  origin: process.env.CORS_ORIGIN_URL,
+  methods: ["GET", "POST"],
+  credentials: true,
+};
+
 const io = new Server(server, {
-  cors: {
-    origin: process.env.CORS_ORIGIN_URL,
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  path: "/socket.io",
+  cors: socketCorsOptions,
+});
+const wsIo = new Server(server, {
+  path: "/ws/socket.io",
+  cors: socketCorsOptions,
 });
 
 app.use(
@@ -37,37 +45,43 @@ app.use("/api", getReloadMsgRoutes);
 app.use("/api", getUserProjectRoutes);
 app.use("/api", testRoute);
 
-io.on("connection", (socket) => {
-  socket.data.projectId = null;
-  socket.data.userId = null;
-  socket.data.prompt = null;
+const registerSocketHandlers = (socketServer: Server) => {
+  socketServer.on("connection", (socket) => {
+    socket.data.projectId = null;
+    socket.data.userId = null;
+    socket.data.prompt = null;
 
-  socket.on("projectId", (id) => {
-    socket.data.projectId = id;
-    console.log("Received projectId:", id);
-  });
+    socket.on("projectId", (id) => {
+      socket.data.projectId = id;
+      console.log("Received projectId:", id);
+    });
 
-  socket.on("userId", (id) => {
-    socket.data.userId = id;
-    console.log("Received userId:", id);
+    socket.on("userId", (id) => {
+      socket.data.userId = id;
+      console.log("Received userId:", id);
+    });
+    socket.on("getcode", async (prompt) => {
+      if (!prompt) return console.log("❌ No prompt received");
+      socket.data.prompt = prompt;
+      if (!socket.data.projectId || !socket.data.userId) {
+        console.log("⚠ Missing projectId or userId, waiting...");
+        return;
+      }
+      if (prompt) {
+        getcode({
+          prompt: socket.data.prompt,
+          projectId: socket.data.projectId,
+          userId: socket.data.userId,
+          socket,
+        });
+      }
+    });
   });
-  socket.on("getcode", async (prompt) => {
-    if (!prompt) return console.log("❌ No prompt received");
-    socket.data.prompt = prompt;
-    if (!socket.data.projectId || !socket.data.userId) {
-      console.log("⚠ Missing projectId or userId, waiting...");
-      return;
-    }
-    if (prompt) {
-      getcode({
-        prompt: socket.data.prompt,
-        projectId: socket.data.projectId,
-        userId: socket.data.userId,
-        socket,
-      });
-    }
-  });
-});
+};
+
+registerSocketHandlers(io);
+registerSocketHandlers(wsIo);
+
 app.get("/", (req, res) => {
   res.send("🚀 Lovable E2B Clone Backend health check successfull...");
 });
@@ -79,4 +93,5 @@ app.get("/test", (req, res) => {
 const PORT = process.env.PORT;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log("Socket.IO paths: /socket.io and /ws/socket.io");
 });

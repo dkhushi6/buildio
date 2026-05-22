@@ -24,6 +24,32 @@ type LeftSideProps = {
   reloadProject: ReloadProjectItem | undefined;
 };
 
+const getSocketConnection = () => {
+  const rawSocketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+
+  if (!rawSocketUrl) {
+    return {
+      origin: undefined,
+      path: "/socket.io",
+    };
+  }
+
+  try {
+    const parsedUrl = new URL(rawSocketUrl, window.location.origin);
+    const basePath = parsedUrl.pathname.replace(/\/+$/, "");
+
+    return {
+      origin: parsedUrl.origin,
+      path: basePath ? `${basePath}/socket.io` : "/socket.io",
+    };
+  } catch {
+    return {
+      origin: rawSocketUrl,
+      path: "/socket.io",
+    };
+  }
+};
+
 const LeftSide = ({
   setProjectMade,
   setUrl,
@@ -78,11 +104,21 @@ const LeftSide = ({
     try {
       console.log("PROJECT CREATION REQ SEND");
 
-      if (projectId) {
+      if (!projectId) {
         console.log("no projectId");
       }
       const userId = session?.user?.id;
-      const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL);
+      const socketConnection = getSocketConnection();
+      const socket = io(socketConnection.origin, {
+        path: socketConnection.path,
+        withCredentials: true,
+      });
+
+      socket.on("connect_error", (err) => {
+        addSocketMsg("system", `$ Socket connection failed: ${err.message}`);
+        console.error("Socket connection failed", err);
+      });
+
       socket.emit("projectId", projectId);
       socket.emit("userId", userId);
       socket.emit("getcode", prompt);
