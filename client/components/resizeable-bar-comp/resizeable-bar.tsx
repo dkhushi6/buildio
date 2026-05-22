@@ -29,6 +29,7 @@ export function ResizableBar({
 
   const [url, setUrl] = useState("");
   const [sandboxId, setSandboxId] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => {
     if (reload && reloadProject) {
       console.log("the reload project is ", reloadProject);
@@ -66,6 +67,7 @@ export function ResizableBar({
           setProjectMade={setProjectMade}
           setUrl={setUrl}
           setSandboxId={setSandboxId}
+          onGenerationDone={() => setRefreshKey((key) => key + 1)}
           reload={reload}
           reloadProject={reloadProject}
         />
@@ -76,8 +78,8 @@ export function ResizableBar({
           <RightSide
             reload={reload}
             sandboxId={sandboxId}
-            projectId={projectId}
             projectMade={projectMade}
+            refreshKey={refreshKey}
             url={url}
           />
         ) : (

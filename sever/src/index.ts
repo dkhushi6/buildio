@@ -10,7 +10,6 @@ import { createServer } from "node:http";
 import { getcode } from "../lib/getcode";
 import getReloadMsgRoutes from "./routes/reload-project";
 import testRoute from "./routes/test";
-import deployProjectRoutes from "./routes/deploy-project";
 dotenv.config();
 
 const app = express();
@@ -45,7 +44,6 @@ app.use("/api", getFileRoutes);
 app.use("/api", getReloadMsgRoutes);
 app.use("/api", getUserProjectRoutes);
 app.use("/api", testRoute);
-app.use("/api", deployProjectRoutes);
 
 const registerSocketHandlers = (socketServer: Server) => {
   socketServer.on("connection", (socket) => {

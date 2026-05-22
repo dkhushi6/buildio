@@ -19,6 +19,7 @@ type LeftSideProps = {
   setProjectMade: React.Dispatch<React.SetStateAction<boolean>>;
   setUrl: React.Dispatch<React.SetStateAction<string>>;
   setSandboxId: React.Dispatch<React.SetStateAction<string>>;
+  onGenerationDone: () => void;
   projectId: string;
   sandboxId: string;
   reload: boolean;
@@ -55,6 +56,7 @@ const LeftSide = ({
   setProjectMade,
   setUrl,
   setSandboxId,
+  onGenerationDone,
   projectId,
   sandboxId,
   reload,
@@ -174,6 +176,7 @@ const LeftSide = ({
 
       socket.on("done", () => {
         addSocketMsg("system", "$ All steps completed.");
+        onGenerationDone();
       });
       socket.on("azur-done", () => {
         addSocketMsg("system", "$ Project Saved in Azur.");

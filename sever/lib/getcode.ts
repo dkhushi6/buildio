@@ -53,8 +53,12 @@ export const getcode = async ({
   console.log("base app made");
   const userPrompt = isContinuation
     ? [
-        "Continue editing the existing app in the current sandbox.",
-        "Do not create a brand-new app unless the user explicitly asks for a rewrite.",
+        "CONTINUATION MODE: edit the existing app already present in /home/user.",
+        "Do not create a new project structure, new brand, or unrelated replacement app.",
+        "Before changing files, inspect the existing app structure and preserve its current product identity, routes, styling direction, and working features.",
+        "Only implement the user's requested delta. If the user asks for a small change, make only that small change.",
+        "Use replaceFile for targeted edits to existing files whenever possible. Create new files only when the requested change truly needs them.",
+        "Do not overwrite src/App.tsx from scratch unless the follow-up request requires route/layout changes.",
         oldProject?.prompt ? `Original project request: ${oldProject.prompt}` : "",
         `New user request: ${prompt}`,
       ]
@@ -127,8 +131,10 @@ export const getcode = async ({
       console.log("first llm call");
       const taskPrompt = isContinuation
         ? [
-            "You are modifying an existing Vite/React app already present in /home/user.",
-            "Inspect and edit the current files as needed. Preserve working parts of the existing app.",
+            "CONTINUATION MODE: modify the existing Vite/React app in /home/user.",
+            "First inspect relevant existing files. Do not hallucinate a fresh app or replace the project wholesale.",
+            "Preserve the existing brand, sections, routes, and components unless the user explicitly asks to change them.",
+            "Make the smallest coherent edit that satisfies the follow-up request.",
             "Apply this continuation plan:",
             stepsString,
           ].join("\n\n")
