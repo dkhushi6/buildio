@@ -50,6 +50,7 @@ const registerSocketHandlers = (socketServer: Server) => {
     socket.data.projectId = null;
     socket.data.userId = null;
     socket.data.prompt = null;
+    socket.data.sandboxId = null;
 
     socket.on("projectId", (id) => {
       socket.data.projectId = id;
@@ -59,6 +60,10 @@ const registerSocketHandlers = (socketServer: Server) => {
     socket.on("userId", (id) => {
       socket.data.userId = id;
       console.log("Received userId:", id);
+    });
+    socket.on("sandboxId", (id) => {
+      socket.data.sandboxId = id;
+      console.log("Received sandboxId:", id);
     });
     socket.on("getcode", async (prompt) => {
       if (!prompt) return console.log("❌ No prompt received");
@@ -72,6 +77,7 @@ const registerSocketHandlers = (socketServer: Server) => {
           prompt: socket.data.prompt,
           projectId: socket.data.projectId,
           userId: socket.data.userId,
+          sandboxId: socket.data.sandboxId,
           socket,
         });
       }

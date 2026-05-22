@@ -99,6 +99,7 @@ Shadcn/UI components (all pre-installed at src/components/ui/):
 - import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 - import { Textarea } from "@/components/ui/textarea"
 - import { Checkbox } from "@/components/ui/checkbox"
+- import { Slider } from "@/components/ui/slider"
 - import { Switch } from "@/components/ui/switch"
 - import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 - import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -107,6 +108,8 @@ Shadcn/UI components (all pre-installed at src/components/ui/):
 - import { Separator } from "@/components/ui/separator"
 - import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 - import { cn } from "@/lib/utils"
+
+Only import shadcn/UI files listed above. If a component is not listed, do not import it from "@/components/ui/..."; build the UI with listed components, Tailwind, or native HTML controls instead.
 
 BANNED PACKAGES — never use these, use the alternative instead:
 - react-icons → use lucide-react instead

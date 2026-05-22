@@ -40,7 +40,7 @@ RUN mkdir -p src/lib && printf 'import { clsx, type ClassValue } from "clsx"\nim
 RUN npx --yes shadcn@latest add button card input label badge avatar \
  dialog sheet dropdown-menu select textarea checkbox radio-group \
  switch tabs accordion toast progress skeleton separator \
- alert form popover tooltip --overwrite
+ alert form popover tooltip slider --overwrite
 RUN npm install framer-motion react-router-dom recharts react-hook-form zod @tanstack/react-query
 RUN npm install @fontsource-variable/inter @fontsource-variable/plus-jakarta-sans @fontsource-variable/geist
 

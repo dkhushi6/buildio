@@ -72,9 +72,10 @@ You MUST follow these rules:
 
 7b. NEVER create or replace any file inside src/components/ui/ — all Shadcn/UI components already exist there:
    button, card, input, label, badge, avatar, dialog, sheet, dropdown-menu, select,
-   textarea, checkbox, radio-group, switch, tabs, accordion, toast, progress,
+   textarea, checkbox, radio-group, slider, switch, tabs, accordion, toast, progress,
    skeleton, separator, alert, form, popover, tooltip.
    Import them directly. Do NOT recreate them.
+   Do NOT import any src/components/ui/* component that is not listed here.
 
 7c. NEVER create .gitkeep files or steps whose only purpose is to create a directory.
     If a directory is needed, just create the real file inside it directly.

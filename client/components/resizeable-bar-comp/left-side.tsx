@@ -20,6 +20,7 @@ type LeftSideProps = {
   setUrl: React.Dispatch<React.SetStateAction<string>>;
   setSandboxId: React.Dispatch<React.SetStateAction<string>>;
   projectId: string;
+  sandboxId: string;
   reload: boolean;
   reloadProject: ReloadProjectItem | undefined;
 };
@@ -55,6 +56,7 @@ const LeftSide = ({
   setUrl,
   setSandboxId,
   projectId,
+  sandboxId,
   reload,
   reloadProject,
 }: LeftSideProps) => {
@@ -121,6 +123,9 @@ const LeftSide = ({
 
       socket.emit("projectId", projectId);
       socket.emit("userId", userId);
+      if (sandboxId) {
+        socket.emit("sandboxId", sandboxId);
+      }
       socket.emit("getcode", prompt);
 
       addSocketMsg("system", " Sent prompt to backend…");
@@ -160,6 +165,11 @@ const LeftSide = ({
 
       socket.on("runCmd", (cmd) => {
         addSocketMsg("system", `$ Command executed: ${cmd}`);
+      });
+
+      socket.on("generation-error", (message) => {
+        addSocketMsg("system", `$ Generation failed: ${message}`);
+        setLoading(false);
       });
 
       socket.on("done", () => {

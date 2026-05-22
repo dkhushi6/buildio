@@ -37,7 +37,7 @@ router.post("/getcode", async (req, res) => {
   console.log("🔗 Base App is available at:", host);
 
   const { textStream } = streamText({
-    model: google("gemini-2.5-pro"),
+    model: google("gemini-3.1-pro-previewo"),
     toolChoice: "required",
     // tools: {
     //   createFile: createFile(sandbox),

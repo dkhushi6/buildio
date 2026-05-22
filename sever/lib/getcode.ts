@@ -20,6 +20,7 @@ type GetCodePropsTypes = {
   prompt: string;
   projectId: string;
   userId: string;
+  sandboxId?: string | null;
   socket: Socket;
 };
 
@@ -27,27 +28,45 @@ export const getcode = async ({
   prompt,
   projectId,
   userId,
+  sandboxId: existingSandboxId,
   socket,
 }: GetCodePropsTypes) => {
-  const sandbox = await Sandbox.create("base-app", { timeoutMs: 600000 });
+  const oldProject = await prisma.project.findFirst({
+    where: { id: projectId, userId },
+  });
+  const isContinuation = Boolean(existingSandboxId || oldProject);
+  const sandbox = existingSandboxId
+    ? await Sandbox.connect(existingSandboxId)
+    : await Sandbox.create("base-app", { timeoutMs: 600000 });
   console.log("sandbox id is", sandbox.sandboxId);
   const { sandboxId } = sandbox;
   console.log("promptis ", prompt);
   console.log("projectid", projectId);
   console.log("userid", userId);
+  console.log("is continuation", isContinuation);
 
   socket.emit("sandboxId", sandboxId);
   const host = sandbox.getHost(5173);
   const url = host;
   socket.emit("url", url);
   console.log("base app made");
+  const userPrompt = isContinuation
+    ? [
+        "Continue editing the existing app in the current sandbox.",
+        "Do not create a brand-new app unless the user explicitly asks for a rewrite.",
+        oldProject?.prompt ? `Original project request: ${oldProject.prompt}` : "",
+        `New user request: ${prompt}`,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    : prompt;
   const codellm = await getCodeAgent(sandbox, socket);
   const codeAgent = codellm.codellm;
   const { toolsByName } = codellm;
   // prd node — runs first, generates a rich project brief
   const prdNode = async (state: llmOutputStateType) => {
     socket.emit("prd-start");
-    const msgs = [new SystemMessage(prdPrompt), new HumanMessage(prompt)];
+    const msgs = [new SystemMessage(prdPrompt), new HumanMessage(userPrompt)];
     const brief = await plannerllm.invoke(msgs);
     const prd = String(brief.content);
     console.log("prd brief:", prd);
@@ -63,8 +82,8 @@ export const getcode = async ({
       return;
     }
     const context = state.prd
-      ? `Project Brief:\n${state.prd}\n\nOriginal prompt:\n${prompt}`
-      : prompt;
+      ? `Project Brief:\n${state.prd}\n\nPrompt:\n${userPrompt}`
+      : userPrompt;
     const messages = [new SystemMessage(namePrompt), new HumanMessage(context)];
     const res = await namellm.invoke(messages);
     const name = res.content;
@@ -105,9 +124,17 @@ export const getcode = async ({
 
     if (messages.length === 0) {
       console.log("first llm call");
+      const taskPrompt = isContinuation
+        ? [
+            "You are modifying an existing Vite/React app already present in /home/user.",
+            "Inspect and edit the current files as needed. Preserve working parts of the existing app.",
+            "Apply this continuation plan:",
+            stepsString,
+          ].join("\n\n")
+        : stepsString;
       messages = [
         new SystemMessage(codePrompt),
-        new HumanMessage(stepsString),
+        new HumanMessage(taskPrompt),
       ];
     }
 
@@ -126,14 +153,12 @@ export const getcode = async ({
       };
     } catch (err) {
       console.error("LLM invocation failed:", err);
-      const errorMsg = new ToolMessage({
-        content: JSON.stringify({ error: String(err) }),
-        tool_call_id: `llm-error-${randomUUID()}`,
-        name: "llmInvocationError",
-      });
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      socket.emit("generation-error", errorMessage);
       return {
-        messages: [errorMsg],
+        messages,
         llmCalls: (state.llmCalls ?? 0) + 1,
+        status: "failed",
       };
     }
   };
@@ -147,24 +172,25 @@ export const getcode = async ({
 
     const toolCalls = last.tool_calls ?? [];
 
-    // Find the first unexecuted tool call
-    const nextCall = toolCalls.find((tc) => {
+    // Gemini expects every tool call in an AI turn to receive a tool response
+    // before the next LLM invocation.
+    const pendingCalls = toolCalls.filter((tc) => {
       const id = tc.id;
       return !state.messages.some(
         (m) => m instanceof ToolMessage && m.tool_call_id === id,
       );
     });
 
-    if (!nextCall) return state;
+    if (pendingCalls.length === 0) return state;
 
-    const tool = toolsByName[nextCall.name];
-    const callId = nextCall.id ?? randomUUID();
+    const toolMessages: ToolMessage[] = [];
 
-    if (!tool) {
-      // Return ToolMessage for unknown tool
-      return {
-        messages: [
-          ...state.messages,
+    for (const nextCall of pendingCalls) {
+      const tool = toolsByName[nextCall.name];
+      const callId = nextCall.id ?? randomUUID();
+
+      if (!tool) {
+        toolMessages.push(
           new ToolMessage({
             content: JSON.stringify({
               error: `Tool not registered: ${nextCall.name}`,
@@ -172,53 +198,49 @@ export const getcode = async ({
             tool_call_id: callId,
             name: nextCall.name,
           }),
-        ],
-        llmCalls: state.llmCalls,
-      };
+        );
+        continue;
+      }
+
+      try {
+        const output = await tool.invoke(nextCall.args);
+
+        toolMessages.push(
+          new ToolMessage({
+            content:
+              typeof output === "string" ? output : JSON.stringify(output),
+            tool_call_id: callId,
+            name: nextCall.name,
+          }),
+        );
+      } catch (err) {
+        toolMessages.push(
+          new ToolMessage({
+            content: JSON.stringify({ error: String(err) }),
+            tool_call_id: callId,
+            name: nextCall.name,
+          }),
+        );
+      }
     }
 
-    try {
-      const output = await tool.invoke(nextCall.args);
-
-      //  Only return the single tool message for this turn
-      const toolMsg = new ToolMessage({
-        content: typeof output === "string" ? output : JSON.stringify(output),
-        tool_call_id: callId,
-        name: nextCall.name,
-      });
-      // await prisma.project.update({
-      //   where: { id: projectId, userId },
-      //   data: {
-      //     messages: JSON.parse(
-      //       JSON.stringify([
-      //         ...state.messages.map((m) => m.toJSON()),
-      //         toolMsg.toJSON ? toolMsg.toJSON() : toolMsg,
-      //       ])
-      //     ),
-      //   },
-      // });
-      return {
-        messages: [...state.messages, toolMsg],
-        llmCalls: state.llmCalls,
-      };
-    } catch (err) {
-      const errorMsg = new ToolMessage({
-        content: JSON.stringify({ error: String(err) }),
-        tool_call_id: callId,
-        name: nextCall.name,
-      });
-
-      return {
-        messages: [errorMsg],
-        llmCalls: state.llmCalls,
-      };
-    }
+    return {
+      messages: [...state.messages, ...toolMessages],
+      llmCalls: state.llmCalls,
+    };
   };
 
   async function shouldContinue(state: llmOutputStateType) {
+    if (state.status === "failed") return END;
+
+    if ((state.llmCalls ?? 0) >= 25) {
+      socket.emit("generation-error", "Generation stopped after too many LLM calls.");
+      return END;
+    }
+
     const lastAI = [...state.messages].reverse().find((m) => isAIMessage(m));
 
-    if (!lastAI) return "codeGenNode";
+    if (!lastAI) return END;
 
     const nextCall = (lastAI.tool_calls ?? []).find((tc) => {
       const id = tc.id;
@@ -260,34 +282,58 @@ export const getcode = async ({
     prd: "",
   };
 
-  const result = await projectGraph.invoke(initialState, {
-    recursionLimit: 100,
-  });
-  const oldProject = await prisma.project.findFirst({
-    where: { id: projectId, userId },
-  });
-  if (oldProject) {
-    console.log("project already exist");
+  let result: llmOutputStateType;
+  try {
+    result = await projectGraph.invoke(initialState, {
+      recursionLimit: 50,
+    });
+  } catch (err) {
+    console.error("Project graph failed:", err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    socket.emit("generation-error", errorMessage);
     return;
   }
+
+  if (result.status === "failed") {
+    console.log("Project generation failed before completion.");
+    return;
+  }
+
   const messagesToSave = result.messages.map((m) => m.toJSON());
 
   const cleanedMessages = JSON.parse(JSON.stringify(messagesToSave));
-  await prisma.project.create({
-    data: {
-      id: projectId,
-      userId,
-      name: result.projectName,
-      prompt: prompt,
+  if (oldProject) {
+    await prisma.project.update({
+      where: { id: projectId, userId },
+      data: {
+        name: result.projectName || oldProject.name,
+        prompt: `${oldProject.prompt}\n\n${prompt}`,
+        messages: cleanedMessages as Prisma.InputJsonValue,
+      },
+    });
+  } else {
+    await prisma.project.create({
+      data: {
+        id: projectId,
+        userId,
+        name: result.projectName,
+        prompt: prompt,
 
-      messages: cleanedMessages as Prisma.InputJsonValue,
-    },
-  });
+        messages: cleanedMessages as Prisma.InputJsonValue,
+      },
+    });
+  }
 
   socket.emit("done");
 
-  SaveProjectsAzur(sandboxId, projectId, userId);
-  socket.emit("azur-done");
+  try {
+    await SaveProjectsAzur(sandboxId, projectId, userId);
+    socket.emit("azur-done");
+  } catch (err) {
+    console.error("Azure project save failed:", err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    socket.emit("generation-error", `Project generated, but save failed: ${errorMessage}`);
+  }
 
   console.log("🔗 App is available at:", host);
 };

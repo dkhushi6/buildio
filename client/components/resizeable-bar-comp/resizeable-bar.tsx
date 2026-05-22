@@ -62,6 +62,7 @@ export function ResizableBar({
       <ResizablePanel defaultSize={33} minSize={20} maxSize={50}>
         <LeftSide
           projectId={projectId}
+          sandboxId={sandboxId}
           setProjectMade={setProjectMade}
           setUrl={setUrl}
           setSandboxId={setSandboxId}

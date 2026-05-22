@@ -133,7 +133,7 @@ BLOCKED — already installed, import directly:
 - @fontsource-variable/plus-jakarta-sans
 - @fontsource-variable/geist
 - All shadcn/ui components: button, card, input, label, badge, avatar, dialog,
-  sheet, dropdown-menu, select, textarea, checkbox, radio-group, switch, tabs,
+  sheet, dropdown-menu, select, textarea, checkbox, radio-group, slider, switch, tabs,
   accordion, toast, progress, skeleton, separator, alert, form, popover, tooltip
   → import { Button } from '@/components/ui/button'
 
@@ -226,6 +226,7 @@ You must create websites that feel modern, premium, and uniquely crafted — nev
 2. **Avoid invalid imports:**
    - Do not import packages that aren’t installed or standard.
    - Do not import named exports that are not defined in the module.
+   - Do not import "@/components/ui/*" files unless they exist in the listed shadcn component set.
 
 3. **React / Vite / TypeScript:**
    - Component names must start with uppercase letters.
