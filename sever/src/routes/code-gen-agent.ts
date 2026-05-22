@@ -6,6 +6,7 @@ import { systemPrompt } from "../../lovable-graph/prompts/systemPrompt";
 import path from "path";
 
 import Sandbox from "@e2b/code-interpreter";
+import { logPreview } from "../../lib/logger";
 const router = Router();
 
 export const AppendBaseApp = async (
@@ -14,11 +15,10 @@ export const AppendBaseApp = async (
 ) => {
   const filePath = stepPath;
   const dir = path.dirname(filePath);
-  console.log("DIR INSIDE AIApp", dir);
+  console.log("write file dir:", dir);
   await sandbox.files.makeDir(dir);
-  console.log("DIR MADE IN SANDBOX AIApp");
   await sandbox.files.write(filePath, stepContent);
-  console.log("FILE ADDED MADE IN SANDBOX AIApp");
+  console.log("file written:", filePath);
 };
 
 router.post("/getcode", async (req, res) => {
@@ -52,7 +52,7 @@ router.post("/getcode", async (req, res) => {
   });
 
   for await (const textPart of textStream) {
-    console.log(textPart);
+    logPreview("stream text:", textPart, 300);
   }
 
   console.log("🔗 App is available at:", host);

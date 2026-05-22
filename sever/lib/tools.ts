@@ -2,12 +2,13 @@ import z from "zod";
 import { tool } from "langchain";
 import Sandbox from "@e2b/code-interpreter";
 import { AppendBaseApp } from "../src/routes/code-gen-agent";
+import { logPreview } from "./logger";
 
 export const createFile = (sandbox: Sandbox, socket) => {
   return tool(
     async ({ path, content }: { path: string; content: string }) => {
-      console.log("path is replace file", path);
-      console.log("content is replace file", content);
+      console.log("createFile:", path);
+      logPreview("createFile content:", content, 300);
 
       await AppendBaseApp(sandbox, { path, content });
       socket.emit("createFile", path);
@@ -32,8 +33,8 @@ export const createFile = (sandbox: Sandbox, socket) => {
 export const replaceFile = (sandbox: Sandbox, socket) => {
   return tool(
     async ({ path, content }: { path: string; content: string }) => {
-      console.log("path is replace file", path);
-      console.log("content is replace file", content);
+      console.log("replaceFile:", path);
+      logPreview("replaceFile content:", content, 300);
 
       await AppendBaseApp(sandbox, { path, content });
       socket.emit("replaceFile", path);

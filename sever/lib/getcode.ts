@@ -16,6 +16,7 @@ import { Socket } from "socket.io";
 import { prisma } from "../lib/prisma";
 import { Prisma } from "./generated/prisma";
 import { SaveProjectsAzur } from "../lovable-graph/azure/save-project";
+import { logPreview, shortLog } from "./logger";
 type GetCodePropsTypes = {
   prompt: string;
   projectId: string;
@@ -40,7 +41,7 @@ export const getcode = async ({
     : await Sandbox.create("base-app", { timeoutMs: 600000 });
   console.log("sandbox id is", sandbox.sandboxId);
   const { sandboxId } = sandbox;
-  console.log("promptis ", prompt);
+  logPreview("prompt:", prompt, 300);
   console.log("projectid", projectId);
   console.log("userid", userId);
   console.log("is continuation", isContinuation);
@@ -69,7 +70,7 @@ export const getcode = async ({
     const msgs = [new SystemMessage(prdPrompt), new HumanMessage(userPrompt)];
     const brief = await plannerllm.invoke(msgs);
     const prd = String(brief.content);
-    console.log("prd brief:", prd);
+    logPreview("prd brief:", prd, 500);
     socket.emit("prd", prd);
     return { prd };
   };
@@ -102,7 +103,7 @@ export const getcode = async ({
       new HumanMessage(state.prd),
     ];
     const res = await plannerllm.invoke(msgs);
-    console.log(res.content);
+    logPreview("planner output:", res.content, 500);
     const aiSteps = res.content;
     socket.emit("stepsDone");
     return { steps: [...steps, aiSteps] };
@@ -146,7 +147,11 @@ export const getcode = async ({
         tc.tool_call_id = tc.id ?? tc.tool_call_id ?? randomUUID();
       });
 
-      console.log("aiMsg content", aiMsg.content[0].type);
+      console.log("aiMsg:", {
+        contentType: aiMsg.content?.[0]?.type ?? typeof aiMsg.content,
+        toolCalls: aiMsg.tool_calls?.length ?? 0,
+        contentPreview: shortLog(aiMsg.content, 300),
+      });
       return {
         messages: [...messages, aiMsg],
         llmCalls: (state.llmCalls ?? 0) + 1,
@@ -166,8 +171,10 @@ export const getcode = async ({
   const toolNode = async (state: llmOutputStateType) => {
     // Get the last AI message with tool calls
     const last = state.messages[state.messages.length - 1];
-    console.log("messages array from toolNode");
-    console.log("last from toolNode");
+    console.log("toolNode messages:", {
+      total: state.messages.length,
+      lastType: last?._getType?.() ?? typeof last,
+    });
     if (!last || !isAIMessage(last)) return state;
 
     const toolCalls = last.tool_calls ?? [];
@@ -332,7 +339,10 @@ export const getcode = async ({
   } catch (err) {
     console.error("Azure project save failed:", err);
     const errorMessage = err instanceof Error ? err.message : String(err);
-    socket.emit("generation-error", `Project generated, but save failed: ${errorMessage}`);
+    socket.emit(
+      "generation-error",
+      `Project generated, but save failed: ${errorMessage}`,
+    );
   }
 
   console.log("🔗 App is available at:", host);

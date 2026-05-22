@@ -13,6 +13,7 @@ import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { LovableState } from "../lovable-graph/lovable-state";
 import { randomUUID } from "crypto";
 import { newSystemPrompt } from "../lovable-graph/prompts/new-prompt";
+import { shortLog } from "./logger";
 type LovableStateType = z.infer<typeof LovableState>;
 export type ToolCallLC = {
   tool_call_id: string;
@@ -74,7 +75,10 @@ export async function buildAgent(
       console.log("first llm call");
       messages = [new SystemMessage(newSystemPrompt), new HumanMessage(prompt)];
     }
-    console.log("the messages array in llm is ", messages);
+    console.log("llm messages:", {
+      count: messages.length,
+      preview: shortLog(messages, 400),
+    });
     try {
       const aiMsg: any = await modelWithTools.invoke(messages);
 
@@ -103,8 +107,10 @@ export async function buildAgent(
   async function toolNode(state: LovableStateType): Promise<LovableStateType> {
     // Get the last AI message with tool calls
     const last = state.messages[state.messages.length - 1];
-    console.log("messages array from toolNode");
-    console.log("last from toolNode");
+    console.log("toolNode messages:", {
+      total: state.messages.length,
+      lastType: last?._getType?.() ?? typeof last,
+    });
     if (!last || !isAIMessage(last)) return state;
 
     const toolCalls = last.tool_calls ?? [];
@@ -204,6 +210,9 @@ export async function buildAgent(
   // --- Invoke graph ---
   const result = await agent.invoke(initialState, { recursionLimit: 50 });
 
-  console.log(result);
+  console.log("agent result:", {
+    messages: result.messages?.length ?? 0,
+    llmCalls: result.llmCalls,
+  });
   return result;
 }

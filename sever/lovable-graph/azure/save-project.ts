@@ -5,6 +5,7 @@ import {
 import Sandbox from "@e2b/code-interpreter";
 import AdmZip from "adm-zip";
 import { prisma } from "../../lib/prisma";
+import { shortLog } from "../../lib/logger";
 const IGNORE_PATHS = [
   "node_modules",
   ".git",
@@ -36,12 +37,12 @@ const getFiles = async (sandboxId, path = ".") => {
       continue;
     }
     if (file.type === "file") {
-      console.log("its a file", file.path);
+      console.log("zip file:", file.path);
       const content = await sandbox.files.read(file.path);
 
       files.push({ path: file.path, content });
     } else if (file.type === "dir") {
-      console.log("its a dir", file.path);
+      console.log("zip dir:", file.path);
 
       const sub = await getFiles(sandboxId, file.path);
       files = files.concat(sub);
@@ -77,7 +78,7 @@ export async function SaveProjectsAzur(
   console.log("inside azure code");
   const zip = new AdmZip();
   const files = await getFiles(sandboxId);
-  console.log("files arr from main function is", files);
+  console.log("files collected for ZIP:", files.length);
   for (const file of files) {
     let zipPath = file.path;
 
@@ -90,7 +91,7 @@ export async function SaveProjectsAzur(
 
     zip.addFile(zipPath, Buffer.from(file.content));
 
-    console.log("file added to ZIP:", zipPath);
+    console.log("file added to ZIP:", shortLog(zipPath, 160));
   }
 
   const blobName = `${projectId}.zip`;

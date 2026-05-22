@@ -76,6 +76,7 @@ export function ResizableBar({
           <RightSide
             reload={reload}
             sandboxId={sandboxId}
+            projectId={projectId}
             projectMade={projectMade}
             url={url}
           />
